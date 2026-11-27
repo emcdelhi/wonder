@@ -89,6 +89,7 @@ body.gnon{background:#eff0ea}body.gnon .top{background:#1d211f}
 .calc .disp .res{display:block;color:#a3e635;font-size:28px;margin-top:4px}.calc .last{font-size:13px;color:#475569;display:flex;justify-content:space-between;margin:2px 2px 6px}
 .calc .kp{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.calc .kp button{height:52px;border:0;border-radius:12px;background:#f1f5f9;font-size:22px;font-weight:700;color:#0f172a}
 .calc .kp button.op{background:#e0e7ff;color:#3730a3}.calc .kp button.cl{background:#fee2e2;color:#b91c1c}.calc .hist{max-height:70px;overflow:auto;font-size:12.5px;color:#64748b;margin:4px 2px}
+.it.done{position:static;inset:auto;z-index:auto;background:transparent;justify-content:flex-start;padding:10px 4px}
 .sil{border-bottom:1px solid #eef2f1;padding:10px 2px}.sil .h{display:flex;gap:8px;align-items:flex-start}.sil .h b{flex:1;font-size:15px}.sil .h b.nw{color:#1d4ed8}.sil .g{display:grid;grid-template-columns:1.1fr .9fr 1fr 1fr;gap:6px;margin-top:6px}
 .sil .g input{padding:8px;font-size:15px}.sil .g label{font-size:11px;color:#6b7c79}.sil .x{border:0;background:none;color:#b42318;font-size:20px}.sil .d{font-size:12px;color:#6b7280;margin-top:2px}
 </style>
@@ -97,7 +98,7 @@ body.gnon{background:#eff0ea}body.gnon .top{background:#1d211f}
 <div class=top><div class=t><b id=ttl>WONDER Mobile</b><div class=s id=sub></div></div><span id=tact></span><button id=hb style="display:none">⌂</button></div>
 <div class=wrap id=app></div>
 <script>
-const API='https://script.google.com/macros/s/AKfycbzl13KzBGmSsTvoE_o-jtevudsTVAdV5VyKa6sNtb4WzulJ-iy4X30opOmxB0pW6Y7ApQ/exec';let SHOP=localStorage.getItem('wm_shop')||'';const JOIN=(new URLSearchParams(location.search).get('j')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();let TOK='',ME=null,ITEMS=null,PARTIES=null,CT='',M=null,IT=[],Q={},DIRTY={},CLR=new Set(),TAB='list',busy=false,lastSave=0,QT=null;
+const API='https://script.google.com/macros/s/AKfycbzl13KzBGmSsTvoE_o-jtevudsTVAdV5VyKa6sNtb4WzulJ-iy4X30opOmxB0pW6Y7ApQ/exec';let SHOP=localStorage.getItem('wm_shop')||'';const JOIN=(new URLSearchParams(location.search).get('j')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();let TOK='',ME=null,ITEMS=null,PARTIES=null,CT='',M=null,IT=[],Q={},SV={},COPS={},DIRTY={},CLR=new Set(),TAB='list',busy=false,lastSave=0,QT=null;
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),U=s=>String(s||'').trim().toUpperCase(),dmy=d=>String(d||'').split('-').reverse().join('-'),f2=n=>(Math.round((+n||0)*100)/100).toLocaleString('en-IN',{maximumFractionDigits:2});
 function toast(t,ms){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),ms||2200)}
 function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(_){return null}}
@@ -107,7 +108,7 @@ function hb(show){$('#hb').style.display=show?'':'none';$('#tact').innerHTML=''}
 /* back button = one screen back (Deepak 27-Nov) */
 let NAVS=[];function nav(fn){camStop();NAVS.push(fn);history.pushState({n:NAVS.length},'');fn()}
 async function leaving(){if(CT&&(Object.keys(DIRTY).length||CLR.size))await save(false)}
-window.addEventListener('popstate',async e=>{if(OVSKIP){OVSKIP--;return}const o=[...document.querySelectorAll('.done')].pop();if(o){o.remove();return}
+window.addEventListener('popstate',async e=>{if(OVSKIP){OVSKIP--;return}const o=[...document.querySelectorAll('.done:not(.it)')].pop();if(o){o.remove();return}
  if(e.state&&e.state.root){if(NAVS.length||CT){await leaving();camStop();NAVS=[];history.pushState({home:1},'');home(true);return}
   if(confirm('Close WONDER Mobile?')){try{window.close()}catch(_){}setTimeout(()=>{history.back();toast('Press back once more to close')},250)}else history.pushState({home:1},'');return}
  await leaving();camStop();NAVS.pop();const f=NAVS[NAVS.length-1];if(f)f();else home(true)});
@@ -206,11 +207,11 @@ async function counts(){hb(1);$('#ttl').textContent='📦 Stock count';const L=(
   <div style="height:8px"></div><button class="btn ghost w" id=rf>↻ Refresh</button></div>`;
  document.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>nav(()=>openC(x.dataset.c)));$('#rf').onclick=async()=>{ME=await call('mHome');counts()}}
 async function openC(tok){$('#app').innerHTML='<div class=card><p class=note>Opening…</p></div>';
- try{const r=await call('mCntOpen',tok);CT=tok;M={status:r.meta.status,meta:r.meta,list:r.list};IT=r.items||[];Q={};DIRTY={};CLR=new Set();RECENT=[];Object.keys(r.q||{}).forEach(id=>Q[id]=r.q[id].c);
+ try{const r=await call('mCntOpen',tok);CT=tok;M={status:r.meta.status,meta:r.meta,list:r.list};IT=r.items||[];Q={};DIRTY={};CLR=new Set();RECENT=[];Object.keys(r.q||{}).forEach(id=>Q[id]=r.q[id].c);SV={...Q};COPS={};
   const s=ls('wc_'+tok)||{};Object.keys(s).forEach(id=>{if(IT.some(i=>i.id==id)){DIRTY[id]=s[id];Q[id]=s[id]}});
   $('#ttl').textContent='📦 Count No. '+(r.meta.no||'');TAB=M.list?'list':'done';lastSave=0;draw()}
  catch(e){if(e.message!='stop'){toast(e.message,3000);home()}}}
-function itemRow(i){const v=Q[i.id],d=i.id in DIRTY;return`<div class="it ${d?'dirty':v!=null?'done':''}" data-id=${i.id}>${(([t,b])=>`<div class=nm><b>${esc(t)}</b><span>${esc(b)}</span></div>`)(fLines(i,i.a))}<input inputmode=decimal data-q=${i.id} value="${v==null?'':v}" placeholder="qty" ${M.status!='open'?'disabled':''}></div>`}
+function itemRow(i){const v=Q[i.id],d=i.id in DIRTY;return`<div class="it ${d?'dirty':v!=null?'done':''}" data-id=${i.id}>${(([t,b])=>`<div class=nm><b>${esc(t)}</b><span>${esc(b)}</span>${cFx(i.id)}</div>`)(fLines(i,i.a))}<input inputmode=none readonly data-q=${i.id} value="${v==null?'':v}" placeholder="qty" ${M.status!='open'?'disabled':''}></div>`}
 function listNow(){const q=U($('#sq').value);if(q){const ws=q.split(/\s+/);return IT.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,60)}
  if(TAB=='done'){const L=IT.filter(i=>Q[i.id]!=null),k=id=>{const x=RECENT.indexOf(id);return x<0?1e9:x};return L.sort((p,q)=>k(p.id)-k(q.id))}return M.list?IT:IT.filter(i=>Q[i.id]!=null)}
 function draw(){const open=M.status=='open';camStop();
@@ -222,17 +223,18 @@ function draw(){const open=M.status=='open';camStop();
  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;$('#sq').value='';drawList()});
  if(open){$('#sv').onclick=()=>save(false);$('#sb').onclick=submit}
  $('#lst').addEventListener('input',e=>{const x=e.target.closest('[data-q]');if(!x)return;const id=x.dataset.q,v=x.value.trim();if(v===''){delete Q[id];delete DIRTY[id];CLR.add(id)}else if(isFinite(+v)&&+v>=0){Q[id]=+v;DIRTY[id]=+v;CLR.delete(id)}keep();x.closest('.it').className='it dirty';status()});
+ $('#lst').addEventListener('click',e=>{const x=e.target.closest('[data-q]')||e.target.closest('.qfx');if(!x||M.status!='open')return;const id=x.dataset.q||x.dataset.cq;if(id)cCalc(id)});
  $('#lst').addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.matches('[data-q]')){e.preventDefault();$('#sq').value='';$('#sq').focus();drawList()}});
- lSwipe($('#lst'),id=>IT.find(i=>i.id==id),(it,d)=>{if(M.status!='open')return '';const q=Math.max(0,Math.round(((+Q[it.id]||0)+d)*1000)/1000);Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();const r=document.querySelector('#lst [data-id="'+it.id+'"]');if(r){r.classList.add('dirty');const x=r.querySelector('input');if(x)x.value=q}else drawList();try{status()}catch(_){}return it.n+' = '+q});
+ lSwipe($('#lst'),id=>IT.find(i=>i.id==id),(it,d)=>{if(M.status!='open')return '';const q=Math.max(0,Math.round(((+Q[it.id]||0)+d)*1000)/1000);(COPS[it.id]=COPS[it.id]||[]).push(Math.round((q-(+Q[it.id]||0))*1000)/1000);Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();const r=document.querySelector('#lst [data-id="'+it.id+'"]');if(r){r.classList.add('dirty');const x=r.querySelector('input');if(x)x.value=q;const nm=r.querySelector('.nm'),f=nm&&nm.querySelector('.qfx');if(f)f.remove();if(nm)nm.insertAdjacentHTML('beforeend',cFx(it.id))}else drawList();try{status()}catch(_){}return it.n+' = '+q});
  drawList();status()}
 function drawList(){const L=listNow();document.querySelectorAll('[data-t]').forEach(b=>b.className=b.dataset.t==TAB&&!$('#sq').value?'on':'');
  $('#lst').innerHTML=L.map(itemRow).join('')||`<p class=note>${$('#sq').value?'No item found':'Nothing counted yet. Search or scan an item.'}</p>`;status()}
 function status(){if(!$('#st'))return;const dn=Object.keys(DIRTY).length+CLR.size;$('#st').innerHTML=dn?`<span style="color:#b5600f">${dn} not saved</span>`:(lastSave?'✔ Saved '+new Date(lastSave).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}):'');$('#nc')&&($('#nc').textContent=Object.keys(Q).length)}
 function keep(){ls('wc_'+CT,DIRTY)}
 function pick(code){code=String(code||'').trim();if(!code)return false;const c=U(code),it=IT.find(i=>U(i.a)==c)||IT.find(i=>U(i.n)==c);if(!it){$('#sq').value=code;drawList();toast('Not found by code – pick from the list');return true}
- $('#sq').value=it.a||it.n;drawList();const x=document.querySelector('[data-q="'+it.id+'"]');if(x){x.focus();x.select()}return true}
+ $('#sq').value=it.a||it.n;drawList();if(M&&M.status=='open')setTimeout(()=>cCalc(it.id),60);return true}
 async function save(sub){if(busy||!CT)return;const L={...DIRTY},C=[...CLR];if(!Object.keys(L).length&&!C.length&&!sub){status();return}busy=true;$('#st')&&($('#st').textContent='Saving…');
- try{const r=await call('mCntSave',CT,L,C,!!sub);Object.keys(L).forEach(k=>{if(DIRTY[k]===L[k])delete DIRTY[k]});C.forEach(k=>CLR.delete(k));keep();lastSave=Date.now();M.status=r.status;
+ try{const r=await call('mCntSave',CT,L,C,!!sub);Object.keys(L).forEach(k=>{if(DIRTY[k]===L[k])delete DIRTY[k];SV[k]=L[k];delete COPS[k]});C.forEach(k=>{delete SV[k];delete COPS[k]});C.forEach(k=>CLR.delete(k));keep();lastSave=Date.now();M.status=r.status;
   if(sub){draw();toast('✔ Submitted – thank you!',3000)}else document.querySelectorAll('.it.dirty').forEach(x=>{if(!(x.dataset.id in DIRTY))x.className='it done'});status()}
  catch(e){if(e.message!='stop'&&$('#st'))$('#st').innerHTML='<span class=err>'+esc(e.message)+' – kept on this phone, will retry</span>'}finally{busy=false}}
 function submit(){const n=Object.keys(Q).length;if(!n)return toast('Nothing counted yet');askBox('Submit count',n+' counted items go to the shop.<br>After this you cannot change it.','Submit').then(y=>{if(y)save(true)})}
@@ -317,7 +319,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 00:47';
+const APP_V='28-Nov-2026 00:54';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -475,7 +477,7 @@ document.addEventListener('click',e=>{const k=e.target.closest('[data-glk]');if(
  let d=null;b.addEventListener('pointerdown',e=>{d={x:e.clientX,y:e.clientY,l:b.offsetLeft,t:b.offsetTop,m:false};b.setPointerCapture(e.pointerId)});
  b.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.abs(dx)+Math.abs(dy)>8)d.m=true;if(d.m){pos.x=d.l+dx;pos.y=d.t+dy;place()}});
  b.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){ls('wm_gfab',pos);return}if(!$('#gnw'))nav(genie)});
- setInterval(()=>{if(!$('#gnw')){document.body.classList.remove('gnon');const sb=$('#sub');if(sb&&ME&&/at your service|Working on it/.test(sb.textContent))sb.textContent='Hello '+ME.name+' · '+SHOP}b.classList.toggle('on',!!(ME&&TOK&&!$('#gnw')&&!GV&&!document.querySelector('.done,.sheet')))},400)})();
+ setInterval(()=>{if(!$('#gnw')){document.body.classList.remove('gnon');const sb=$('#sub');if(sb&&ME&&/at your service|Working on it/.test(sb.textContent))sb.textContent='Hello '+ME.name+' · '+SHOP}b.classList.toggle('on',!!(ME&&TOK&&!$('#gnw')&&!GV&&!document.querySelector('.done:not(.it),.sheet')))},400)})();
 /* ---- voice settings (phone voices; pick the one you like) ---- */
 function gnVoices(){return (speechSynthesis.getVoices()||[]).filter(v=>/^(hi|en)[-_]/i.test(v.lang)).sort((a,b)=>(/IN/i.test(b.lang)-/IN/i.test(a.lang))||(/google/i.test(b.name)-/google/i.test(a.name))||a.name.localeCompare(b.name))}
 function gnVoice(){const c=gnCfg(),L=gnVoices();return L.find(v=>v.name==c.vn)||L.find(v=>/en[-_]IN/i.test(v.lang)&&/google/i.test(v.name))||L.find(v=>/en[-_]IN/i.test(v.lang))||L[0]||null}
@@ -556,6 +558,20 @@ async function stockIn(){hb(1);$('#ttl').textContent='📥 Stock aaya';try{await
    const b=$('#sis2');b.disabled=true;try{const r=await call('mStockIn',{supplier:D.supplier,bill_no:D.bill_no,date:D.date,note:D.note,photos:D.photos,lines:L.map(l=>({id:l.id||0,n:l.n||'',name:l.name||'',desc:l.desc||'',qty:Math.round((+l.qty||0)*(+l.pk||1)*1000)/1000,unit:(+l.pk||1)!=1?((ITEMS.find(i=>i.id==l.id)||{}).u||'')+(l.id?'':' ('+(+l.pk)+' per '+(l.unit||'unit')+')'):(l.unit||''),rate:(+l.pk||1)!=1&&(+l.rate||0)?Math.round((+l.rate)/(+l.pk)*100)/100:(+l.rate||0)}))});
     ls(siKey(),null);beep(1);doneBox('✔','Sent to the shop',esc(r.id)+'<br>'+L.length+' items – the shop will check and accept');stockIn()}catch(er){b.disabled=false;if(er.message!='stop')toast(er.message,3500)}}};
  draw()}
+
+/* ---- same calculator on the shop's Stock count screen: first number = qty saved at the shop, then changes; Save = saved at once ---- */
+function cFx(id){const o=COPS[id]||[],d=id in DIRTY;if(!o.length&&!d)return '';const b=SV[id]!=null?+SV[id]:0;const g=[];o.forEach(x=>{const y=g[g.length-1];if(y&&y.d===x)y.n++;else g.push({d:x,n:1})});
+ return `<span class=qfx data-cq=${id} style="display:block;margin-top:4px;text-align:left"><span class=bs>${f2(b)}</span> ${g.map(x=>`<span class=${x.d>0?'pl':'mi'}>${x.d>0?'+':'−'}${f2(Math.abs(x.d))}${x.n>1?'×'+x.n:''}</span>`).join(' ')}${!o.length?' → ':''} = <b>${f2(+Q[id]||0)}</b></span>`}
+function cCalc(id){const it=IT.find(i=>i.id==id);if(!it)return;const base=SV[id]!=null?+SV[id]:0,ops=COPS[id]||[];let ex=ops.length?String(base)+ops.map(d=>(d>0?'+':'-')+Math.abs(d)).join(''):(Q[id]!=null?String(+Q[id]):'');
+ const sh=document.createElement('div');sh.className='sheet';sh.innerHTML=`<div class="in calc"><b style="font-size:16px">${esc(it.n)}</b>
+  <div class=last><span>Saved at shop: <b>${SV[id]!=null?f2(base):'–'}</b></span><span>${ops.length?ops.length+' change(s) since then':(id in DIRTY?'changed, not saved yet':'')}</span></div>
+  <div class=disp><span id=cx></span><span class=res id=cr></span></div>
+  <div class=kp>${['7','8','9','⌫','4','5','6','−','1','2','3','+','C','0','.','×'].map(k=>`<button data-k="${k}" class="${'+−×'.includes(k)?'op':k=='C'||k=='⌫'?'cl':''}">${k}</button>`).join('')}</div>
+  <div style="height:8px"></div><button class="btn w" id=cok>Save</button><div style="height:6px"></div><button class="btn ghost w" id=cno>Cancel</button></div>`;document.body.appendChild(sh);
+ const draw=()=>{const v=calcEval(ex.replace(/[-+*]$/,''));sh.querySelector('#cx').textContent=ex.replace(/\*/g,'×').replace(/-/g,'−')||'0';sh.querySelector('#cr').textContent=isNaN(v)?'?':'= '+f2(v);sh.querySelector('#cok').textContent=isNaN(v)?'Save':'Save  '+f2(Math.max(0,v))};draw();
+ sh.querySelector('.kp').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;if(k=='C')ex='';else if(k=='⌫')ex=ex.slice(0,-1);else{const c=k=='−'?'-':k=='×'?'*':k;if('+-*'.includes(c)&&(!ex||'+-*'.includes(ex.slice(-1))))ex=ex.replace(/[-+*]$/,'')+(ex?c:(c=='-'?'-':''));else ex+=c}try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}draw()};
+ sh.querySelector('#cno').onclick=()=>sh.remove();
+ sh.querySelector('#cok').onclick=()=>{const v=calcEval(ex.replace(/[-+*]$/,''));if(isNaN(v))return toast('Check the sum');const q=Math.max(0,v);Q[id]=q;DIRTY[id]=q;CLR.delete(String(id));delete COPS[id];RECENT=[+id,...RECENT.filter(x=>x!=id)];keep();sh.remove();drawList();status();beep('ok');save(false)}}
 
 const P={};new URLSearchParams(location.search).forEach((v,k)=>P[k]=v);$('#sub').textContent=SHOP;run('mInfo').then(i=>{if(i&&i.shop){SHOP=i.shop;localStorage.setItem('wm_shop',SHOP);if(!ME)$('#sub').textContent=SHOP}}).catch(()=>{});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
