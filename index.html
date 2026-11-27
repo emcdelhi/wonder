@@ -89,6 +89,8 @@ body.gnon{background:#eff0ea}body.gnon .top{background:#1d211f}
 .calc .disp .res{display:block;color:#a3e635;font-size:28px;margin-top:4px}.calc .last{font-size:13px;color:#475569;display:flex;justify-content:space-between;margin:2px 2px 6px}
 .calc .kp{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.calc .kp button{height:52px;border:0;border-radius:12px;background:#f1f5f9;font-size:22px;font-weight:700;color:#0f172a}
 .calc .kp button.op{background:#e0e7ff;color:#3730a3}.calc .kp button.cl{background:#fee2e2;color:#b91c1c}.calc .hist{max-height:70px;overflow:auto;font-size:12.5px;color:#64748b;margin:4px 2px}
+.sil{border-bottom:1px solid #eef2f1;padding:10px 2px}.sil .h{display:flex;gap:8px;align-items:flex-start}.sil .h b{flex:1;font-size:15px}.sil .h b.nw{color:#1d4ed8}.sil .g{display:grid;grid-template-columns:1.1fr .9fr 1fr 1fr;gap:6px;margin-top:6px}
+.sil .g input{padding:8px;font-size:15px}.sil .g label{font-size:11px;color:#6b7c79}.sil .x{border:0;background:none;color:#b42318;font-size:20px}.sil .d{font-size:12px;color:#6b7280;margin-top:2px}
 </style>
 </head>
 <body>
@@ -140,6 +142,7 @@ async function home(keep){document.body.classList.remove('gnon');gvStop();const 
  $('#app').innerHTML=`<div class=tiles>${F.count?`<div class=tile id=tc><div class=i>📦</div>Stock count<div class=n>${open?open+' to count':'nothing to count'}</div></div>`:''}
   ${F.count?`<div class=tile id=tl><div class=i>📋</div>My scan lists<div class=n>${(ls('wm_lists_'+U(ME.name))||[]).length} on this phone</div></div>`:''}
   ${F.quote?`<div class=tile id=tq><div class=i>📝</div>New quotation<div class=n>${sent.length?sent.length+' sent':'send to the shop'}</div></div>`:''}
+  ${F.gstock?`<div class=tile id=tsi><div class=i>📥</div>Stock aaya<div class=n>photo of bill / parchi</div></div>`:''}
   <div class="tile gt" id=tg><span class="gorb br"></span>Ask Genie<div class=n>AI assistant</div></div>
   <div class=tile id=ti><div class=i>🔍</div>Items<div class=n>${F.rate||F.stock?'rates'+(F.stock?' & stock':''):'name & code'}</div></div>
   <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div></div>
@@ -147,7 +150,7 @@ async function home(keep){document.body.classList.remove('gnon');gvStop();const 
   ${ME.mc?`<div class=card style="margin-top:12px;background:#fff7e6;border:1px solid #e0a84a"><b>🔑 Your PIN is still 1234</b><p class=note style="margin:6px 0">Everybody knows 1234. Make your own PIN – takes 10 seconds.</p><button class="btn" id=mcp>Make my PIN</button></div>`:''}
   <div class=card style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class=note style="flex:1">Version ${APP_V}</span><button class="btn ghost" id=hup>⟳ Update</button><button class="btn ghost" id=hset>⚙</button></div>
   ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
- $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tg').onclick=()=>nav(genie);$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
+ $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tg').onclick=()=>nav(genie);$('#tsi')&&($('#tsi').onclick=()=>nav(stockIn));$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
 function IK(){return 'wm_items_'+U(ME&&ME.name||'')}let ITF=null;
 function itemsFresh(){if(!ITF)ITF=call('mItems').then(r=>{ITEMS=r;ls(IK(),{at:Date.now(),r});return r}).catch(e=>{ITF=null;throw e});return ITF}
 async function loadItems(){if(ITEMS)return ITEMS;const c=ls(IK());if(c&&c.r&&c.r.length){ITEMS=c.r;itemsFresh().catch(()=>{});return ITEMS}$('#app').innerHTML='<div class=card><p class=note>Loading items… (only the first time)</p></div>';return await itemsFresh()}
@@ -314,7 +317,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 00:32';
+const APP_V='28-Nov-2026 00:47';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -518,6 +521,41 @@ function lCalc(l){if(!l)return;const f=lFxTxt(l),base=f?f.b:(+l.q||0);let ex=f?S
  sh.querySelector('.kp').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;if(k=='C')ex='';else if(k=='⌫')ex=ex.slice(0,-1);else{const c=k=='−'?'-':k=='×'?'*':k;if('+-*'.includes(c)&&(!ex||'+-*'.includes(ex.slice(-1))))ex=ex.replace(/[-+*]$/,'')+(ex?c:(c=='-'?'-':''));else ex+=c}try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}draw()};
  sh.querySelector('#cno').onclick=()=>sh.remove();
  sh.querySelector('#cok').onclick=()=>{const v=calcEval(ex.replace(/[-+*]$/,''));if(isNaN(v))return toast('Check the sum');const q=Math.max(0,v);l.q=q;l.b=q;l.ops=[];l.t=Date.now();lSave();lDraw();lStat();sh.remove();beep('ok');toast('Saved: '+f2(q))}}
+
+/* ---- 📥 Stock aaya (28-Nov): photo of supplier bill / challan / parchi / stickers → Genie reads → check → Send to shop
+   (WONDER › 📥 Phone Stock In → Admin Accept → filled Purchase). Draft stays on the phone until sent. ---- */
+function siKey(){return 'wm_sin_'+U(ME&&ME.name||'')}function siGet(){return ls(siKey())||{supplier:'',bill_no:'',date:'',note:'',lines:[],photos:[]}}function siPut(d){ls(siKey(),d)}
+function imgBig(f){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};im.onerror=()=>res('');im.src=r.result};r.readAsDataURL(f)})}
+async function stockIn(){hb(1);$('#ttl').textContent='📥 Stock aaya';try{await loadItems()}catch(e){if(e.message!='stop')toast(e.message);return}const D=siGet();
+ const tot=()=>D.lines.reduce((a,l)=>a+(+l.qty||0)*(+l.pk||1),0);
+ const row=(l,i)=>`<div class=sil data-i=${i}><div class=h><b class="${l.id?'':'nw'}">${l.id?'✔ '+esc(l.n):'⚠ '+esc(l.name||l.desc||'?')+' <small>(not in WONDER)</small>'}</b><button class=x data-x=${i}>✕</button></div>${l.desc&&l.desc!=l.n?`<div class=d>Read: ${esc(l.desc)}</div>`:''}
+  <div class=g><div><label>Qty</label><input inputmode=decimal data-f=qty value="${l.qty||''}"></div><div><label>Unit</label><input data-f=unit value="${esc(l.unit||'')}"></div><div><label>× per unit</label><input inputmode=decimal data-f=pk value="${l.pk||1}"></div><div><label>Rate</label><input inputmode=decimal data-f=rate value="${l.rate||''}"></div></div>
+  <span class=lnk data-ch=${i} style="font-size:13px">🔗 ${l.id?'change item':'choose item'}</span></div>`;
+ const draw=()=>{$('#app').innerHTML=`<div class=card><div class=row><button class="btn" id=sip>📷 Photo se padho</button><button class="btn ghost" id=sia>＋ Add item</button></div><input type=file id=sif accept="image/*" capture=environment multiple style="display:none">
+   <p class=note style="margin:8px 0 0">Bill, challan, parchi or roll stickers – Genie reads the items. Check everything, then send. Stock is added only when the shop accepts.</p></div>
+  <div class=card><label class=l>Supplier</label><input id=sis value="${esc(D.supplier)}"><div class=row><div><label class=l>Bill / challan no.</label><input id=sib value="${esc(D.bill_no)}"></div><div><label class=l>Date</label><input id=sid value="${esc(D.date)}" placeholder="dd-mm-yyyy"></div></div>
+   <div id=siw style="display:none;margin-top:8px"><input id=siq placeholder="Search item to add"><div id=sir></div></div></div>
+  <div class=card style="padding:6px 12px"><b>Items (${D.lines.length}) · total ${f2(tot())}</b><div id=sil>${D.lines.map(row).join('')||'<p class=note>No items yet – take a photo or ＋ Add item.</p>'}</div>${D.photos.length?`<p class=note>📷 ${D.photos.length} photo(s) saved for the shop</p>`:''}</div>
+  <div class=card><label class=l>Note (optional)</label><input id=sin value="${esc(D.note||'')}"><div style="height:10px"></div><button class="btn w" id=sis2>⬆ Send to shop</button><div style="height:6px"></div><button class="btn ghost w" id=siclr>Clear</button></div><div style="height:70px"></div>`;
+  ['sis','sib','sid','sin'].forEach(id=>$('#'+id).oninput=e=>{D[{sis:'supplier',sib:'bill_no',sid:'date',sin:'note'}[id]]=e.target.value;siPut(D)});
+  $('#sil').oninput=e=>{const f=e.target.dataset.f;if(!f)return;const i=+e.target.closest('.sil').dataset.i;D.lines[i][f]=f=='unit'?e.target.value:(+String(e.target.value).replace(',','.')||0);siPut(D)};
+  $('#sil').onclick=e=>{const x=e.target.closest('[data-x]');if(x){D.lines.splice(+x.dataset.x,1);siPut(D);return draw()}const c=e.target.closest('[data-ch]');if(c){PICK=+c.dataset.ch;$('#siw').style.display='';$('#siq').focus();$('#siq').scrollIntoView({block:'center'})}};
+  let PICK=-1;$('#sia').onclick=()=>{PICK=-1;const w=$('#siw');w.style.display=w.style.display=='none'?'':'none';if(w.style.display=='')$('#siq').focus()};
+  $('#siq').oninput=()=>{const ws=U($('#siq').value).split(/\s+/).filter(Boolean),R=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,20):[];$('#sir').innerHTML=R.map(i=>`<div class=it data-ad=${i.id} style="cursor:pointer"><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u].filter(Boolean).join(' · '))}</span></div><span class=ok>＋</span></div>`).join('')};
+  $('#sir').onclick=e=>{const r=e.target.closest('[data-ad]');if(!r)return;const it=ITEMS.find(i=>i.id==r.dataset.ad);if(PICK>=0&&D.lines[PICK]){Object.assign(D.lines[PICK],{id:it.id,n:it.n});if(!D.lines[PICK].unit)D.lines[PICK].unit=it.u||''}else D.lines.push({id:it.id,n:it.n,qty:1,unit:it.u||'',pk:1,rate:0});siPut(D);draw()};
+  $('#sip').onclick=()=>$('#sif').click();
+  $('#sif').onchange=async e=>{const fs=[...e.target.files];if(!fs.length)return;const b=$('#sip');b.disabled=true;let n=0,ok=0;
+   for(const f of fs){b.textContent='🤖 Reading '+(++n)+' / '+fs.length+'…';try{const img=await imgBig(f);if(!img)continue;const r=await call('mGenieStockIn',img);ok++;
+     if(!D.supplier&&r.supplier)D.supplier=r.supplier;if(!D.bill_no&&r.bill_no)D.bill_no=r.bill_no;if(!D.date&&r.date)D.date=r.date;if(r.photo)D.photos.push(r.photo);
+     (r.lines||[]).forEach(l=>D.lines.push({id:l.match?l.match.id:0,n:l.match?l.match.n:'',name:l.name||l.desc,desc:l.desc,qty:l.qty||0,unit:l.unit||(l.match&&l.match.u)||'',pk:1,rate:l.rate||0}));siPut(D)}
+    catch(er){if(er.message=='stop')return;toast(er.message,3500)}}
+   b.disabled=false;draw();if(ok)toast('🤖 Genie read '+ok+' photo(s) – please check the items',3000)};
+  $('#siclr').onclick=async()=>{if(!await askBox('Clear this stock in?','All items and photos on this screen are removed (nothing was sent).','Clear',1))return;siPut(null);ls(siKey(),null);stockIn()};
+  $('#sis2').onclick=async()=>{const L=D.lines.filter(l=>(+l.qty||0)>0);if(!L.length)return toast('Add at least one item with qty');const u=L.filter(l=>!l.id).length;
+   if(!await askBox('Send to shop',`<b>${esc(D.supplier||'No supplier')}</b>${D.bill_no?' · bill '+esc(D.bill_no):''}<br>${L.length} items · total ${f2(L.reduce((a,l)=>a+(+l.qty||0)*(+l.pk||1),0))}${u?`<br><span style="color:#1d4ed8">${u} item(s) not in WONDER</span>`:''}`,'⬆ Send'))return;
+   const b=$('#sis2');b.disabled=true;try{const r=await call('mStockIn',{supplier:D.supplier,bill_no:D.bill_no,date:D.date,note:D.note,photos:D.photos,lines:L.map(l=>({id:l.id||0,n:l.n||'',name:l.name||'',desc:l.desc||'',qty:Math.round((+l.qty||0)*(+l.pk||1)*1000)/1000,unit:(+l.pk||1)!=1?((ITEMS.find(i=>i.id==l.id)||{}).u||'')+(l.id?'':' ('+(+l.pk)+' per '+(l.unit||'unit')+')'):(l.unit||''),rate:(+l.pk||1)!=1&&(+l.rate||0)?Math.round((+l.rate)/(+l.pk)*100)/100:(+l.rate||0)}))});
+    ls(siKey(),null);beep(1);doneBox('✔','Sent to the shop',esc(r.id)+'<br>'+L.length+' items – the shop will check and accept');stockIn()}catch(er){b.disabled=false;if(er.message!='stop')toast(er.message,3500)}}};
+ draw()}
 
 const P={};new URLSearchParams(location.search).forEach((v,k)=>P[k]=v);$('#sub').textContent=SHOP;run('mInfo').then(i=>{if(i&&i.shop){SHOP=i.shop;localStorage.setItem('wm_shop',SHOP);if(!ME)$('#sub').textContent=SHOP}}).catch(()=>{});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
