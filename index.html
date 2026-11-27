@@ -308,7 +308,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 00:05';
+const APP_V='28-Nov-2026 00:25';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -420,20 +420,20 @@ function gnSay(t,done){try{speechSynthesis.cancel();const c=gnCfg(),u=new Speech
 function gnStatus(){const s=$('#sub');if(s&&$('#gnw'))s.innerHTML=GNB?'<span style="color:#f59e0b">●</span> Working on it…':'<span style="color:#c6f135">●</span> Ready · at your service'}
 function gnDraw(){const w=$('#gnw');if(!w)return;const h=new Date().getHours();
  if(!GN.length)w.innerHTML=`<div class=gwel><span class="gorb br"></span><button class=gtalk id=gnt><i></i>TAP TO TALK</button><h3>${h<12?'Good morning':h<17?'Good afternoon':'Good evening'}, ${esc(ME&&ME.name||'')}.</h3><p>I'm Genie. Ask me about items, stock, rates or how to use the app – type or just talk.</p><div class=gch>${GN_TIPS.map((t,i)=>`<button data-gt=${i}><i></i><span><b>${esc(t[0])}</b><small>${esc(t[1])}</small></span></button>`).join('')}</div><p class=note style="margin-top:14px">Genie only reads – it never saves or sends anything.</p></div>`;
- else w.innerHTML=GN.map((m,i)=>`<div class="gm ${m.role=='user'?'u':'a'}${m.err?' e':''}">${gnMd(m.content)}${m.role!='user'&&!m.err?`<span class=sp data-gs=${i}>🔊 Listen</span>`:''}</div>`).join('')+(GNB?'<div class="gm a"><span class=dots><i></i><i></i><i></i></span> Working on it…</div>':'');
+ else w.innerHTML=GN.map((m,i)=>`<div class="gm ${m.role=='user'?'u':'a'}${m.err?' e':''}">${gnMd(m.content)}${m.role!='user'&&!m.err?`<span class=sp>${(ME&&ME.flags||{}).gteach?`<span data-gtc=${i} style="margin-right:16px">✎ Teach</span>`:''}<span data-gs=${i}>🔊 Listen</span></span>`:''}</div>`).join('')+(GNB?'<div class="gm a"><span class=dots><i></i><i></i><i></i></span> Working on it…</div>':'');
  const b=$('#gns');if(b)b.disabled=GNB;gnStatus();window.scrollTo(0,GN.length?document.body.scrollHeight:0)}
 function gnKey(){return 'wm_gnchat_'+U(ME&&ME.name||'')}
-function genie(){hb(1);document.body.classList.add('gnon');if(!GN.length)GN=(ls(gnKey())||[]).filter(m=>!m.err);$('#ttl').textContent='Genie';
+function genie(){hb(1);document.body.classList.add('gnon');if(!GN.length){const lim=Date.now()-30*864e5;GN=(ls(gnKey())||[]).filter(m=>!m.err&&(!m.t||m.t>lim))}$('#ttl').textContent='Genie';
  $('#app').innerHTML=`<div class=gw id=gnw></div><div class=gbar><div class=in><textarea id=gnq rows=1 placeholder="Ask Genie anything…"></textarea><button class=mc id=gnm>🎙</button><button class=go id=gns>➤</button></div><div class=ft><span id=gnu></span><span><span class=lnk id=gnv style="font-size:12px;margin-right:14px">🔊 Voice</span><span class=lnk id=gnc style="font-size:12px">New chat</span></span></div></div>`;
  const q=$('#gnq'),fit=()=>{q.style.height='auto';q.style.height=Math.min(q.scrollHeight,120)+'px';$('#gns').classList.toggle('on',!!q.value.trim())};q.oninput=fit;
  $('#gns').onclick=()=>gnAsk(q.value);$('#gnm').onclick=()=>gvStart();$('#gnv').onclick=gnVoiceSet;$('#gnc').onclick=()=>{if(GNB)return;GN=[];ls(gnKey(),null);gnDraw()};
- $('#gnw').onclick=e=>{if(e.target.closest('#gnt'))return gvStart();const s=e.target.closest('[data-gs]');if(s){gnSay(GN[+s.dataset.gs].content);return}const t=e.target.closest('[data-gt]');if(!t)return;const v=GN_TIPS[+t.dataset.gt][2];if(/ $/.test(v)){q.value=v;q.focus();fit()}else gnAsk(v)};
+ $('#gnw').onclick=e=>{if(e.target.closest('#gnt'))return gvStart();const tc=e.target.closest('[data-gtc]');if(tc)return gnTeach(+tc.dataset.gtc);const s=e.target.closest('[data-gs]');if(s){gnSay(GN[+s.dataset.gs].content);return}const t=e.target.closest('[data-gt]');if(!t)return;const v=GN_TIPS[+t.dataset.gt][2];if(/ $/.test(v)){q.value=v;q.focus();fit()}else gnAsk(v)};
  gnDraw()}
-async function gnAsk(t,fromVoice){t=String(t||'').trim();if(!t||GNB)return null;const q=$('#gnq');if(q){q.value='';q.style.height='';$('#gns')&&$('#gns').classList.remove('on')}GN.push({role:'user',content:t});GNB=true;gnDraw();let ans=null;
- try{const r=await call('mGenie',GN.filter(m=>!m.err).slice(-10));ans=r.text||'Done ✔';GN.push({role:'assistant',content:ans});if(!fromVoice&&gnCfg().auto)gnSay(ans);const u=$('#gnu');if(u)u.textContent='Today: '+r.used+' of '+r.limit;
+async function gnAsk(t,fromVoice){t=String(t||'').trim();if(!t||GNB)return null;const q=$('#gnq');if(q){q.value='';q.style.height='';$('#gns')&&$('#gns').classList.remove('on')}GN.push({role:'user',content:t,t:Date.now()});GNB=true;gnDraw();let ans=null;
+ try{const r=await call('mGenie',GN.filter(m=>!m.err).slice(-10).map(m=>({role:m.role,content:m.content})));ans=r.text||'Done ✔';GN.push({role:'assistant',content:ans,t:Date.now()});if(!fromVoice&&gnCfg().auto)gnSay(ans);const u=$('#gnu');if(u)u.textContent='Today: '+r.used+' of '+r.limit;
   if(r.open){const go={stock_count:counts,scan_lists:lists,quotation:()=>quote(),items:items,change_pin:pinMenu}[r.open];if(go){GNB=false;gnDraw();gvStop();setTimeout(()=>{document.body.classList.remove('gnon');nav(go)},fromVoice?1800:900);return ans}}}
  catch(e){if(e.message=='stop'){GNB=false;return null}ans=e.message;GN.push({role:'assistant',content:e.message,err:1})}
- GNB=false;if(GN.length>40)GN=GN.slice(-40);ls(gnKey(),GN.filter(m=>!m.err).slice(-40));gnDraw();return ans}
+ GNB=false;if(GN.length>400)GN=GN.slice(-400);ls(gnKey(),GN.filter(m=>!m.err).slice(-400));gnDraw();return ans}
 /* voice mode: full dark screen, listens → asks → speaks → listens again, until ✕ */
 function gvStop(){if(!GV)return;GV.off=1;try{GV.rec&&GV.rec.abort()}catch(_){}try{speechSynthesis.cancel()}catch(_){}GV.el.remove();GV=null}
 function gvStart(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voice is not available in this browser – type instead');return}if(GV)return;
@@ -484,6 +484,16 @@ function gnVoiceSet(){const c=gnCfg(),sh=document.createElement('div');sh.classN
  sh.querySelector('#gva').onchange=e=>save({auto:e.target.checked});sh.querySelector('#gvph').onchange=e=>save({photo:e.target.checked});
  sh.querySelector('#gvok').onclick=()=>sh.remove();sh.onclick=e=>{if(e.target===sh)sh.remove()}}
 try{speechSynthesis.onvoiceschanged=()=>{}}catch(_){}
+
+/* ---- ✎ Teach Genie (user with right "Teach Genie") → shop's Genie Rule Book (same as WONDER on the PC) ---- */
+function gnTeach(i){const a=GN[i];if(!a)return;let q='';for(let k=i-1;k>=0;k--)if(GN[k].role=='user'){q=GN[k].content;break}
+ const sh=document.createElement('div');sh.className='sheet';sh.innerHTML=`<div class=in><b style="font-size:17px">✎ Teach Genie</b><p class=note style="margin:4px 0">Next time Genie answers like you write here (phone + PC).</p>
+  <label class=l>Question</label><input id=gtq value="${esc(q)}"><label class=l>Right answer / how to answer</label><textarea id=gta rows=4></textarea>
+  <div class=chips><button data-k=ex class=on>Example (this question)</button><button data-k=rule>Rule (all answers)</button></div><button class="btn w" id=gtok>Save</button><div style="height:6px"></div><button class="btn ghost w" id=gtx>Cancel</button></div>`;
+ document.body.appendChild(sh);let k='ex';sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;sh.querySelectorAll('[data-k]').forEach(x=>x.classList.toggle('on',x===b))});
+ sh.querySelector('#gtx').onclick=()=>sh.remove();sh.querySelector('#gta').focus();
+ sh.querySelector('#gtok').onclick=async()=>{const t=sh.querySelector('#gta').value.trim(),qq=sh.querySelector('#gtq').value.trim();if(!t)return toast('Write the right answer');const b=sh.querySelector('#gtok');b.disabled=true;
+  try{await call('mGenieTeach',k=='ex'?{kind:'ex',q:qq||'(any)',a:t}:{kind:'rule',t});sh.remove();toast('📘 Genie learned it')}catch(e){b.disabled=false;if(e.message!='stop')toast(e.message,3000)}}}
 
 const P={};new URLSearchParams(location.search).forEach((v,k)=>P[k]=v);$('#sub').textContent=SHOP;run('mInfo').then(i=>{if(i&&i.shop){SHOP=i.shop;localStorage.setItem('wm_shop',SHOP);if(!ME)$('#sub').textContent=SHOP}}).catch(()=>{});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
