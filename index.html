@@ -322,7 +322,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 01:34';
+const APP_V='28-Nov-2026 01:42';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -461,7 +461,7 @@ function gnScan(){const sm=SET.mode,so=LC.on;SET.mode='click';LC.on=true;const s
  const L=()=>ITEMS||((ls(IK())||{}).r)||IT||[];if(!ITEMS)itemsFresh().catch(()=>{});
  const close=()=>{if(done)return;done=true;clearInterval(tk);camStop();SET.mode=sm;LC.on=so;sh.remove();const q=$('#gnq');if(q&&got.length){q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(_){}q.dispatchEvent(new Event('input'));q.scrollTop=q.scrollHeight;toast(got.length+' item(s) in the list – now type your question')}};
  const lst=()=>{const b=sh.querySelector('#gsl');if(b)b.innerHTML=got.map((t,i)=>`<div>${i+1}. ${esc(t)}</div>`).join('')||'<div class=note>Scanned items come here, one below the other</div>';const d=sh.querySelector('#gscx');if(d)d.textContent=got.length?'✔ Done – '+got.length+' item(s)':'Close';if(b)b.scrollTop=b.scrollHeight};
- const hit=(code,msg)=>{const it=matchItem(L(),code);const line=it?it.n+' ('+(it.a||code)+')':'Barcode '+code;got.push(line);const q=$('#gnq');if(q){q.value=q.value+(q.value&&!/\n$/.test(q.value)?'\n':'')+line+'\n'}beep(it?'ok':'unr');(msg||camMsg)('✔ '+(it?it.n:code)+'  ·  '+got.length+' in list','ok');lst()};
+ const hit=(code,msg)=>{const it=matchItem(L(),code);const line=it?it.n+' – barcode '+(it.a||code):'Barcode '+code;got.push(line);const q=$('#gnq');if(q){if(!q.value.trim())q.value='Inka stock kya hai?\n';const no=(q.value.match(/^\d+\. /gm)||[]).length+1;q.value=q.value+(!/\n$/.test(q.value)?'\n':'')+no+'. '+line+'\n'}beep(it?'ok':'unr');(msg||camMsg)('✔ '+(it?it.n:code)+'  ·  '+got.length+' in list','ok');lst()};
  sh.innerHTML=`<div class=in>${camPanel()}<div class=gsl id=gsl></div><button class="btn w" id=gscx>Close</button></div>`;document.body.appendChild(sh);
  ['#lct','#lset','.sw.br'].forEach(k=>{const x=sh.querySelector(k);if(x)x.remove()});
  ['lct','lset','lauto'].forEach(id=>{const d=document.createElement('i');d.id=id;d.style.display='none';sh.appendChild(d)});
