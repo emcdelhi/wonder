@@ -176,7 +176,7 @@ async function items(){hb(1);$('#ttl').textContent='Items';try{await loadItems()
 function matchItem(L,code){const c=U(code);let it=L.find(i=>U(i.a)==c)||L.find(i=>U(i.n)==c)||L.find(i=>i.x&&i.x.some(x=>U(x)==c));if(it)return it;
  const m=c.match(/^EMC-?(\d+)-?([A-Z]{3})A?$/);if(m){const z=m[1].replace(/^0+/,'')||'0';for(const n of [...new Set([m[1],z,z.padStart(2,'0'),z.padStart(3,'0')])]){const al='EMC-'+n+'-'+m[2],nm=n+'-'+m[2];it=L.find(i=>U(i.a)==al)||L.find(i=>U(i.a).startsWith(al+'-'))||L.find(i=>U(i.n)==nm)||L.find(i=>U(i.n).startsWith(nm+'-'))||L.find(i=>U(i.a).startsWith('EMC-'+n+'-')&&U(i.a).split('-').slice(2).join('-').split('/').includes(m[2]));if(it)return it}}return it}
 /* new-item proposal for a Stock code unregistered (EMC5SHGA → 05-SHG-22*0.8 · alias EMC-05-SHG · group 4-SHG-22*08(EMC)) */
-const GRP={SMT:'1-SMT-22*0.8(EMC)',WMT:'2-WMT-22*0.8(EMC)',FAB:'3-FAB-22*0.8(EMC)',SHG:'4-SHG-22*08(EMC)',WHG:'5-WHG-22*08(EMC)',MBL:'6-MBL/SPK/MTL-22*0.8(EMC)',SPK:'6-MBL/SPK/MTL-22*0.8(EMC)',MTL:'6-MBL/SPK/MTL-22*0.8(EMC)'};
+const GRP={SMT:'SMT 22*0.8',WMT:'WMT 22*0.8',FAB:'FAB 22*0.8',SHG:'SHG 22*0.8',WHG:'WHG 22*0.8',MBL:'SPK/MBL/MTL 22*0.8',SPK:'SPK/MBL/MTL 22*0.8',MTL:'SPK/MBL/MTL 22*0.8'};
 function guessItem(code){const c=U(code).trim(),m=c.match(/^EMC-?0*(\d+)-?([A-Z]{3})A?$/);if(!m||!GRP[m[2]])return {a:c};const n=m[1].padStart(2,'0');return {n:n+'-'+m[2]+'-22*0.8',a:'EMC-'+n+'-'+m[2],g:GRP[m[2]],u:'Metre',sz:'22*0.8',h:'39204900',fin:m[2]}}
 function find(code){return matchItem(ITEMS||IT,code)}
 const FINS=['SHG','SMT','WMT','FAB','SPK','MBL','MTL','WHG'];function finOf(i){for(const t of [i.a,i.n]){const m=U(t).split(/[-\s\/]+/).filter(x=>FINS.includes(x));if(m.length)return m.join('/')}return ''}
@@ -327,7 +327,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 02:10';
+const APP_V='28-Nov-2026 02:22';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
