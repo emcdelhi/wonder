@@ -31,6 +31,18 @@ video{width:100%;border-radius:10px;background:#000;max-height:60vh}.toast{posit
 .cam .aim{position:absolute;left:12%;right:12%;top:50%;height:2px;background:#ef4444cc;box-shadow:0 0 8px #ef4444}.cam .ctl{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 .cam .ctl button{border:0;border-radius:20px;background:#0009;color:#fff;padding:7px 12px;font-size:13px;font-weight:600}.cam .msg{position:absolute;left:8px;right:8px;bottom:8px;background:#000a;color:#fff;border-radius:10px;padding:7px 10px;font-size:14px;font-weight:600;min-height:20px}
 .cam .msg.ok{background:#0f766ee6}.cam .msg.bad{background:#b42318e6}.camoff{display:flex;align-items:center;justify-content:center;color:#9ca3af;height:100%;font-size:14px}.it.flash{animation:fl 1.2s}@keyframes fl{0%{background:#bbf7d0}100%{background:transparent}}
+.cam{height:40vh;margin:-12px -12px 10px;border-radius:0}.aimbox{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);border:3px solid #ffffffd9;border-radius:18px;box-shadow:0 0 0 2000px #0008;pointer-events:none}
+.cb{position:absolute;border:0;background:#0007;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;z-index:2}.cb.tl{left:10px;top:10px}.cb.tr{right:10px;top:10px}.cb.mr{right:10px;top:44%;transform:translateY(-50%)}.cb.bl{left:10px;bottom:50px}.cb.on{background:#facc15;color:#000}
+.sw{position:relative;display:inline-block;width:52px;height:30px;flex:0 0 52px}.sw input{opacity:0;width:0;height:0;position:absolute}.sw i{position:absolute;inset:0;background:#9ca3af;border-radius:20px;transition:.2s}.sw i:before{content:'';position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.sw input:checked+i{background:#6d28d9}.sw input:checked+i:before{transform:translateX(22px)}
+.cam .sw.br{position:absolute;right:12px;bottom:54px;z-index:2}.cam .msg{z-index:2}
+.scanpill{position:fixed;left:50%;transform:translateX(-50%);bottom:104px;z-index:9;background:#6d28d9;color:#fff;border:0;border-radius:30px;padding:14px 32px;font-size:17px;font-weight:700;box-shadow:0 4px 16px #6d28d977}.scanpill.on{background:#16a34a}
+.tblh{display:flex;align-items:center;padding:8px 4px;border-bottom:2px solid #e5e7eb;font-weight:700}.tblh .add{color:#6d28d9;margin-left:auto;margin-right:10px;font-weight:600;cursor:pointer}.tblh .q{width:84px;text-align:center;border-left:1px solid #e5e7eb;line-height:1.1}
+.tbl .it{padding:12px 4px}.tbl .it .nm b{font-size:18px;font-weight:800;letter-spacing:.2px}.tbl .it input{width:84px;flex:0 0 84px;border:0;border-left:1px solid #e5e7eb;border-radius:0;font-size:20px;font-weight:700;text-align:center;background:transparent;padding:6px}.tbl .it.dirty input{background:#fff7e6}.tbl .it.done input{background:transparent}.tbl .it .x{color:#c5c9d0;font-size:15px;padding:2px 6px 2px 0}
+.lcard{background:#eceef2;border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer}.lcard b{display:block;font-size:17px}.lcard .m{display:flex;justify-content:space-between;color:#555;font-size:13px;margin-top:4px}
+.fab{position:fixed;right:18px;bottom:26px;background:#6d28d9;color:#fff;border:0;border-radius:30px;padding:15px 24px;font-size:17px;font-weight:700;box-shadow:0 4px 16px #6d28d977;z-index:9}
+.srow{display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid #f0f0f0}.srow>div{flex:1}.srow b{display:block;font-size:15px}.srow span{font-size:12.5px;color:#6b7280}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0 12px}.chips button{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:9px 14px;font-size:14px}.chips button.on{background:#6d28d9;color:#fff;border-color:#6d28d9}
+.upd{position:fixed;top:0;left:0;right:0;background:#6d28d9;color:#fff;text-align:center;padding:10px;z-index:50;font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
@@ -81,8 +93,9 @@ async function home(keep){camStop();if(!keep&&NAVS.length){NAVS=[]}CT='';M=null;
   <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div></div>
   ${F.quote&&sent.length?`<div class=card style="margin-top:12px"><b>Quotations sent from this phone</b>${sent.slice(-10).reverse().map(q=>`<div class=it><div class=nm><b>${esc(q.party||q.phone)}</b><span>${esc(q.id)} · ${esc(q.at)} · ${q.n} items${q.t?' · ₹'+f2(q.t):''}</span></div></div>`).join('')}</div>`:''}
   ${ME.mc?`<div class=card style="margin-top:12px;background:#fff7e6;border:1px solid #e0a84a"><b>🔑 Your PIN is still 1234</b><p class=note style="margin:6px 0">Everybody knows 1234. Make your own PIN – takes 10 seconds.</p><button class="btn" id=mcp>Make my PIN</button></div>`:''}
+  <div class=card style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class=note style="flex:1">Version ${APP_V}</span><button class="btn ghost" id=hup>⟳ Update</button><button class="btn ghost" id=hset>⚙</button></div>
   ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
- $('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
+ $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
 async function loadItems(){if(ITEMS)return ITEMS;$('#app').innerHTML='<div class=card><p class=note>Loading items…</p></div>';ITEMS=await call('mItems');return ITEMS}
 function pinMenu(){hb(1);$('#ttl').textContent='Change PIN';$('#app').innerHTML=`<div class=card><label class=l>Old PIN</label><input id=o1 type=password inputmode=numeric maxlength=6><label class=l>New PIN</label><input id=o2 type=password inputmode=numeric maxlength=6><label class=l>New PIN again</label><input id=o3 type=password inputmode=numeric maxlength=6>
  <div style="height:12px"></div><button class="btn w" id=ogo>Change PIN</button><div class=err id=oe></div></div><div class=card><button class="btn ghost w" id=lo>Log out from this phone</button></div>`;
@@ -137,10 +150,10 @@ function listNow(){const q=U($('#sq').value);if(q){const ws=q.split(/\s+/);retur
  if(TAB=='done'){const L=IT.filter(i=>Q[i.id]!=null),k=id=>{const x=RECENT.indexOf(id);return x<0?1e9:x};return L.sort((p,q)=>k(p.id)-k(q.id))}return M.list?IT:IT.filter(i=>Q[i.id]!=null)}
 function draw(){const open=M.status=='open';camStop();
  $('#app').innerHTML=`${open?camPanel():''}${open?'':`<div class=card><b class=ok>✔ Submitted – the shop will check it. Ask the shop to re-open it if you need to change something.</b></div>`}
-  <div class=card><div class=row><input id=sq placeholder="Search name / code" autocomplete=off><button class="btn ghost" id=scan>📷 Scan</button></div>
+  <div class="card tbl"><div class=row><input id=sq placeholder="Search name / code" autocomplete=off><button class="btn ghost" id=scan>📷</button></div>
   <div class=tabs>${M.list?'<button data-t=list>To count ('+IT.length+')</button>':''}<button data-t=done>Counted (<span id=nc>0</span>)</button></div><div id=lst></div></div>
   <div class=bar><div class=st id=st></div>${open?'<button class="btn ghost" id=sv>Save</button><button class="btn warn" id=sb>Submit</button>':''}</div>`;
- $('#sq').oninput=drawList;$('#sq').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();pick($('#sq').value)}};$('#scan').onclick=()=>camScan(pick);if(open){$('#lct').onclick=()=>{LC.on=!LC.on;ls('wm_camon',LC.on);const y=window.scrollY;draw();window.scrollTo(0,y)};if(LC.on)camStart(scanHit)}
+ $('#sq').oninput=drawList;$('#sq').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();pick($('#sq').value)}};$('#scan').onclick=()=>camScan(pick);if(open)camWire(scanHit,()=>{const y=window.scrollY;draw();window.scrollTo(0,y)})
  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;$('#sq').value='';drawList()});
  if(open){$('#sv').onclick=()=>save(false);$('#sb').onclick=submit}
  $('#lst').addEventListener('input',e=>{const x=e.target.closest('[data-q]');if(!x)return;const id=x.dataset.q,v=x.value.trim();if(v===''){delete Q[id];delete DIRTY[id];CLR.add(id)}else if(isFinite(+v)&&+v>=0){Q[id]=+v;DIRTY[id]=+v;CLR.delete(id)}keep();x.closest('.it').className='it dirty';status()});
@@ -175,48 +188,87 @@ async function camScan(cb){const sh=document.createElement('div');sh.className='
   await zx();rd=new ZXing.BrowserMultiFormatReader();await rd.decodeFromConstraints({video:{facingMode:'environment'}},v,res=>{if(res)hit(res.getText())});v.style.display=''}
  catch(e){v.style.display='none';if(!gone)nt.textContent='Camera not allowed – allow camera for this app in phone settings, or tap "Take photo of the barcode".'}}
 /* ---------- live scanner (count screen): camera stays on, every scan = +1 ---------- */
-const LC={on:ls('wm_camon')!==false,stream:null,rd:null,bd:null,last:'',lastAt:0,run:0};
-function camPanel(){return`<div class=cam id=cam>${LC.on?'<video id=lcv playsinline muted autoplay></video><div class=aim></div>':'<div class=camoff>Camera off</div>'}<div class=ctl><button id=lct>${LC.on?'⏸ Camera off':'▶ Camera on'}</button></div><div class=msg id=lcm>${LC.on?'Point at the barcode – every scan adds 1':'Tap "Camera on" to scan'}</div></div>`}
-function camStop(){LC.run++;try{LC.stream&&LC.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{LC.rd&&LC.rd.reset()}catch(_){}LC.stream=null;LC.rd=null}
-async function camStart(onCode){camStop();const my=++LC.run,v=$('#lcv');if(!v)return;const msg=(t,c)=>{const m=$('#lcm');if(m){m.textContent=t;m.className='msg '+(c||'')}};
- const got=t=>{if(my!=LC.run||!t)return;const now=Date.now();if(t==LC.last&&now-LC.lastAt<1600){LC.lastAt=now;return}LC.last=t;LC.lastAt=now;onCode(t,msg)};
- try{if('BarcodeDetector' in window){LC.bd=LC.bd||new BarcodeDetector();LC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});if(my!=LC.run){LC.stream.getTracks().forEach(t=>t.stop());return}
-   v.srcObject=LC.stream;await v.play();const loop=async()=>{if(my!=LC.run)return;try{const r=await LC.bd.detect(v);if(r&&r[0])got(r[0].rawValue)}catch(_){}setTimeout(loop,120)};loop();return}
-  await zx();if(my!=LC.run)return;LC.rd=new ZXing.BrowserMultiFormatReader();await LC.rd.decodeFromConstraints({video:{facingMode:'environment'}},v,res=>{if(res)got(res.getText())})}
- catch(e){msg('Camera not available ('+(e.name||e.message)+') – allow camera for this app, or type the code','bad')}}
+/* ---------- scanner, Barcodica style (Deepak 27-Nov): aim box, torch, quality, auto / on-click, settings ---------- */
+const SETD={combine:true,prohibit:false,askQty:false,q:'good',aim:true,mode:'display'};let SET={...SETD,...(ls('wm_set')||{})};function setSave(){ls('wm_set',SET)}
+const QUAL={normal:{w:640,roi:1,ms:200},good:{w:1280,roi:.85,ms:130},high:{w:1920,roi:.7,ms:110},excellent:{w:1920,roi:.55,ms:90}};
+const LC={on:ls('wm_camon')!==false,stream:null,track:null,rd:null,bd:null,last:'',lastAt:0,run:0,armed:false,torch:false,cb:null};
+function camPanel(){const q=QUAL[SET.q]||QUAL.good,w=Math.round(q.roi*86),h=Math.round(Math.min(70,q.roi*62));
+ return`<div class=cam id=cam>${LC.on?`<video id=lcv playsinline muted autoplay></video>${SET.aim?`<div class=aimbox style="width:${w}%;height:${h}%"></div>`:''}`:'<div class=camoff>Camera off</div>'}
+ <button class="cb tl" id=ltorch title="Torch">🔦</button><button class="cb tr" id=lset title="Scanner settings">⚙</button><button class="cb mr" id=lman title="Type a code">⌨</button>
+ <button class="cb bl" id=lct title="Camera on / off">${LC.on?'📷':'🚫'}</button><label class="sw br" title="Auto scan on / off"><input type=checkbox id=lauto ${SET.mode=='display'?'checked':''}><i></i></label>
+ <div class=msg id=lcm>${LC.on?(SET.mode=='display'?'Point at the barcode – every scan adds 1':'Tap SCAN to read one barcode'):'Camera is off'}</div></div>
+ ${LC.on&&SET.mode=='click'?'<button class=scanpill id=lscan>▮▯▮ SCAN</button>':''}`}
+function camMsg(t,c){const m=$('#lcm');if(m){m.textContent=t;m.className='msg '+(c||'')}}
+function camWire(onCode,redraw){LC.cb=onCode;$('#lct').onclick=()=>{LC.on=!LC.on;ls('wm_camon',LC.on);redraw()};$('#lset').onclick=()=>nav(scanSettings);
+ $('#lauto').onchange=e=>{SET.mode=e.target.checked?'display':'click';setSave();redraw()};
+ $('#lman').onclick=()=>{const c=prompt('Type the barcode / code');if(c&&c.trim())onCode(c.trim(),camMsg)};
+ $('#ltorch').onclick=async()=>{if(!LC.track)return toast('Camera is off');try{LC.torch=!LC.torch;await LC.track.applyConstraints({advanced:[{torch:LC.torch}]});$('#ltorch').classList.toggle('on',LC.torch)}catch(_){LC.torch=false;toast('No torch on this camera')}};
+ const sp=$('#lscan');if(sp)sp.onclick=()=>{LC.armed=true;LC.last='';camMsg('Scanning…');sp.classList.add('on')};
+ if(LC.on)camStart(onCode)}
+function camStop(){LC.run++;try{LC.stream&&LC.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{LC.rd&&LC.rd.reset()}catch(_){}LC.stream=null;LC.track=null;LC.rd=null;LC.torch=false;LC.armed=false}
+async function camStart(onCode){camStop();const my=++LC.run,v=$('#lcv');if(!v)return;const q=QUAL[SET.q]||QUAL.good;
+ const got=t=>{if(my!=LC.run||!t)return;if(SET.mode=='click'){if(!LC.armed)return;LC.armed=false;const sp=$('#lscan');sp&&sp.classList.remove('on')}const now=Date.now();if(SET.mode=='display'&&t==LC.last&&now-LC.lastAt<1600){LC.lastAt=now;return}LC.last=t;LC.lastAt=now;onCode(t,camMsg)};
+ const cons={facingMode:{ideal:'environment'},width:{ideal:q.w},height:{ideal:Math.round(q.w*9/16)}};
+ try{if('BarcodeDetector' in window){if(!LC.bd){let f=[];try{f=await BarcodeDetector.getSupportedFormats()}catch(_){}LC.bd=f.length?new BarcodeDetector({formats:f}):new BarcodeDetector()}
+   LC.stream=await navigator.mediaDevices.getUserMedia({video:cons});if(my!=LC.run){LC.stream.getTracks().forEach(t=>t.stop());return}LC.track=LC.stream.getVideoTracks()[0];
+   try{await LC.track.applyConstraints({advanced:[{focusMode:'continuous'}]})}catch(_){}
+   v.srcObject=LC.stream;await v.play();const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+   const loop=async()=>{if(my!=LC.run)return;try{if(SET.mode=='display'||LC.armed){let src=v;if(q.roi<1&&v.videoWidth){const sw=Math.round(v.videoWidth*q.roi),sh=Math.round(v.videoHeight*Math.min(1,q.roi*1.1));cv.width=sw;cv.height=sh;cx.drawImage(v,(v.videoWidth-sw)/2,(v.videoHeight-sh)/2,sw,sh,0,0,sw,sh);src=cv}
+     let r=await LC.bd.detect(src);if((!r||!r.length)&&src!==v)r=await LC.bd.detect(v);if(r&&r[0])got(r[0].rawValue)}}catch(_){}setTimeout(loop,q.ms)};loop();return}
+  await zx();if(my!=LC.run)return;LC.rd=new ZXing.BrowserMultiFormatReader();await LC.rd.decodeFromConstraints({video:cons},v,res=>{if(res)got(res.getText())});try{LC.stream=v.srcObject;LC.track=LC.stream.getVideoTracks()[0]}catch(_){}}
+ catch(e){camMsg('Camera not available ('+(e.name||e.message)+') – allow camera for this app, or type the code with ⌨','bad')}}
+function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
+ const tg=(k,t,d)=>`<label class=srow><div><b>${t}</b><span>${d}</span></div><span class=sw><input type=checkbox data-k=${k} ${SET[k]?'checked':''}><i></i></span></label>`,ch=(k,o)=>`<div class=chips>${o.map(([v,l])=>`<button data-c=${k} data-v=${v} class="${SET[k]==v?'on':''}">${l}</button>`).join('')}</div>`;
+ $('#app').innerHTML=`<div class=card>${tg('combine','Combine duplicate barcodes','Same barcode again = quantity +1 (My scan lists)')}${tg('prohibit','Prohibit duplicate barcodes','A barcode already in the list is not added again')}${tg('askQty','Quantity before adding','Asks the quantity for every scan')}
+  <div class=srow><div><b>Scanner quality</b><span>Higher reads small / far barcodes better but uses more battery</span></div></div>${ch('q',[['normal','Normal'],['good','Good'],['high','High'],['excellent','Excellent']])}
+  ${tg('aim','Scanner aim','Shows the scan box on the camera')}
+  <div class=srow><div><b>Standard scanner</b><span>On display = reads by itself · On Click = only when you tap SCAN</span></div></div>${ch('mode',[['display','Scanner on display'],['click','Scanner on Click']])}</div>
+  <div class=card><p class=note style="margin:0">WONDER Mobile version ${APP_V}</p><div style="height:8px"></div><button class="btn ghost w" id=sup>⟳ Check for update</button></div>`;
+ document.querySelectorAll('[data-k]').forEach(x=>x.onchange=()=>{SET[x.dataset.k]=x.checked;setSave()});
+ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();scanSettings()});$('#sup').onclick=()=>upCheck(true)}
+function askQ(name){if(!SET.askQty)return 1;const a=prompt('Quantity for '+name,'1');if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
+/* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
+const APP_V='27-Nov-2026 19:00';
+async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
+ if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
+  try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
+  try{await fetch('index.html',{cache:'reload'});await fetch('./',{cache:'reload'})}catch(_){}setTimeout(()=>location.reload(),700)}
+ else if(manual)toast('✔ Latest version ('+APP_V+')')}catch(e){if(manual)toast('Could not check – no internet?')}}
 function beep(ok){try{const c=beep.c||(beep.c=new (window.AudioContext||window.webkitAudioContext)()),o=c.createOscillator(),g=c.createGain();o.frequency.value=ok?1250:300;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(ok?.09:.3))}catch(_){}try{navigator.vibrate&&navigator.vibrate(ok?50:[80,60,80])}catch(_){}}
 let RECENT=[];
-document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if($('#lcv')&&LC.on)camStart(CT?scanHit:listHit)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else{if($('#lcv')&&LC.on&&LC.cb)camStart(LC.cb);upCheck(false)}});setInterval(()=>{if(!document.hidden&&!CT)upCheck(false)},600000);
 function scanHit(code,msg){const c=U(code),it=IT.find(i=>U(i.a)==c)||IT.find(i=>U(i.n)==c);
  if(!it){beep(0);return msg('❌ '+code+' – not in this count','bad')}
- const q=(+Q[it.id]||0)+1;Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();beep(1);RECENT=[it.id,...RECENT.filter(x=>x!=it.id)];msg('✔ '+it.n+'  =  '+q,'ok');
+ if(SET.prohibit&&Q[it.id]!=null){beep(0);return msg('⛔ Already counted: '+it.n+' = '+Q[it.id],'bad')}const add=askQ(it.n);if(add==null)return msg('Skipped');
+ const q=Math.round(((+Q[it.id]||0)+add)*1000)/1000;Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();beep(1);RECENT=[it.id,...RECENT.filter(x=>x!=it.id)];msg('✔ '+it.n+'  =  '+q,'ok');
  if($('#sq').value)$('#sq').value='';TAB='done';drawList();const r=document.querySelector('.it[data-id="'+it.id+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}
 /* ---------- My scan lists (like Barcodica): new list on the phone, scan = +1, save, share, upload to the shop ---------- */
 function LK(){return 'wm_lists_'+U(ME.name)}function lGet(){return ls(LK())||[]}function lPut(L){ls(LK(),L)}
 async function lists(){hb(1);$('#ttl').textContent='📋 My scan lists';const L=lGet().sort((a,b)=>String(b.at).localeCompare(String(a.at)));
- $('#app').innerHTML=`<div class=card><button class="btn w" id=lnew>＋ New list</button></div><div class=card>${L.map(x=>{const q=x.lines.reduce((s,l)=>s+(+l.q||0),0);return`<div class=it data-l="${x.id}" style="cursor:pointer"><div class=nm><b>${esc(x.name)}</b><span>${x.lines.length} items · qty ${f2(q)} · ${esc(x.at)}</span></div>${x.up?'<span class=pill style="color:#0f766e;background:#e3f3f1">Sent ✓</span>':''}</div>`}).join('')||'<p class=note>No list yet. Tap <b>New list</b>, then scan items – every scan adds 1.</p>'}</div>`;
+ $('#app').innerHTML=`${L.map(x=>{const q=x.lines.reduce((s,l)=>s+(+l.q||0),0);return`<div class=lcard data-l="${x.id}"><b>${esc(x.name)}${x.up?' <span class=pill style="color:#0f766e;background:#d7f0ec;font-size:11px">Sent ✓</span>':''}</b><div class=m><span>Barcodes: ${x.lines.length} <small>(Qty: ${f2(q)})</small></span><span>${esc(x.at)}</span></div></div>`}).join('')||'<div class=card><p class=note style="margin:0">No list yet. Tap <b>NEW</b>, then scan items – every scan adds 1.</p></div>'}<div style="height:70px"></div><button class=fab id=lnew>⊞ NEW</button>`;
  $('#lnew').onclick=()=>{const d=new Date(),nm=prompt('Name of the list (e.g. Rack 3, Godown shelf A)',d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}));if(nm==null)return;
   const x={id:'L'+Date.now().toString(36),name:nm.trim()||'List',at:d.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}),lines:[]};const A=lGet();A.push(x);lPut(A);nav(()=>listOpen(x.id))};
  document.querySelectorAll('[data-l]').forEach(r=>r.onclick=()=>nav(()=>listOpen(r.dataset.l)))}
 let LST=null,LREC=[];
 async function listOpen(id){hb(1);try{await loadItems()}catch(e){if(e.message!='stop')toast(e.message);return}const A=lGet();LST=A.find(x=>x.id==id);if(!LST)return lists();LREC=[];
  $('#ttl').textContent='📋 '+LST.name;
- $('#app').innerHTML=`${camPanel()}<div class=card><div class=row><input id=lq placeholder="Add by name / code" autocomplete=off></div><div id=lr></div><div id=ll></div></div>
+ $('#app').innerHTML=`${camPanel()}<div class="card tbl" style="padding:6px 8px"><div class=tblh><span>Item <small class=note id=lhn></small></span><span class=add id=ladd>＋ Add</span><span class=q>Qty<br><small class=note id=lhq></small></span></div><div id=lqw style="display:none;padding:8px 0"><input id=lq placeholder="Search name / code to add" autocomplete=off></div><div id=lr></div><div id=ll></div></div>
   <div class=bar><div class=st id=lst2></div><button class="btn ghost" id=lsh>Share</button><button class="btn" id=lup>Send to shop</button></div>
   <div class=card><button class="btn ghost w" id=ldel style="color:#b42318">Delete this list</button></div>`;
- $('#lct').onclick=()=>{LC.on=!LC.on;ls('wm_camon',LC.on);listOpen(id)};if(LC.on)camStart(listHit);
+ camWire(listHit,()=>listOpen(id));$('#ladd').onclick=()=>{const w=$('#lqw');w.style.display=w.style.display=='none'?'':'none';if(w.style.display=='')$('#lq').focus()};
  $('#lq').oninput=()=>{const ws=U($('#lq').value).split(/\s+/).filter(Boolean),R=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,20):[];$('#lr').innerHTML=R.map(i=>`<div class=it data-ad=${i.id} style="cursor:pointer"><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u].filter(Boolean).join(' · '))}</span></div><span class=ok>＋</span></div>`).join('')};
  $('#lr').onclick=e=>{const r=e.target.closest('[data-ad]');if(!r)return;const it=ITEMS.find(i=>i.id==r.dataset.ad);lAdd(it.a||it.n,it,1);$('#lq').value='';$('#lr').innerHTML=''};
  $('#ll').addEventListener('input',e=>{const x=e.target.closest('[data-lq]');if(!x)return;const l=LST.lines[+x.dataset.lq];l.q=x.value.trim()===''?0:+x.value||0;lSave(1)});
  $('#ll').onclick=e=>{const b=e.target.closest('[data-lx]');if(b&&confirm('Remove this line?')){LST.lines.splice(+b.dataset.lx,1);lSave();lDraw()}};
  $('#lsh').onclick=lShare;$('#lup').onclick=lUpload;$('#ldel').onclick=()=>{if(!confirm('Delete list "'+LST.name+'" from this phone?'))return;lPut(lGet().filter(x=>x.id!=LST.id));history.back()};lDraw()}
 function lSave(quiet){const A=lGet(),i=A.findIndex(x=>x.id==LST.id);LST.up=false;if(i>=0)A[i]=LST;lPut(A);if(!quiet)lStat()}
-function lStat(){const q=LST.lines.reduce((s,l)=>s+(+l.q||0),0);$('#lst2')&&($('#lst2').textContent=LST.lines.length+' items · qty '+f2(q)+(LST.up?' · sent ✓':' · saved on phone'))}
-function lDraw(){const k=x=>{const i=LREC.indexOf(x.c);return i<0?1e9:i};const L=LST.lines.map((l,i)=>({...l,i})).sort((a,b)=>k(a)-k(b));
- $('#ll').innerHTML=L.map(l=>`<div class=it data-lc="${esc(l.c)}"><div class=nm><b>${esc(l.n||l.c)}</b><span>${esc(l.c)}${l.id?'':' · ❓ not in WONDER'}</span></div><input inputmode=decimal data-lq=${l.i} value="${l.q}"><button class=x data-lx=${l.i}>✕</button></div>`).join('')||'<p class=note>Scan an item – every scan adds 1.</p>';lStat()}
-function lAdd(code,it,add){const c=String(code).trim();let l=LST.lines.find(x=>U(x.c)==U(c)||(it&&x.id==it.id));if(!l){l={c,id:it?it.id:0,n:it?it.n:'',q:0};LST.lines.push(l)}l.q=Math.round(((+l.q||0)+add)*1000)/1000;LREC=[l.c,...LREC.filter(x=>x!=l.c)];lSave(1);lDraw();
- const r=document.querySelector('[data-lc="'+CSS.escape(l.c)+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}return l}
-function listHit(code,msg){const it=find(code),l=lAdd(it?(it.a||it.n):code,it,1);beep(!!it);msg((it?'✔ ':'❓ ')+(it?it.n:code+' (not in WONDER)')+'  =  '+l.q,it?'ok':'bad')}
+function lStat(){const q=LST.lines.reduce((s,l)=>s+(+l.q||0),0);$('#lhn')&&($('#lhn').textContent='('+LST.lines.length+')');$('#lhq')&&($('#lhq').textContent=f2(q));$('#lst2')&&($('#lst2').textContent=LST.lines.length+' items · qty '+f2(q)+(LST.up?' · sent ✓':' · saved on phone'))}
+function lDraw(){const k=x=>{const i=LREC.indexOf(LST.lines[x.i]);return i<0?1e9:i};const L=LST.lines.map((l,i)=>({...l,i})).sort((a,b)=>k(a)-k(b));
+ $('#ll').innerHTML=L.map(l=>`<div class=it data-li="${l.i}"><button class=x data-lx=${l.i}>✕</button><div class=nm><b>${esc(l.c)}</b><span>${l.id?esc(l.n):'❓ not in WONDER'}</span></div><input inputmode=decimal data-lq=${l.i} value="${l.q}"></div>`).join('')||'<p class=note style="padding:10px">Scan an item – every scan adds 1.</p>';lStat()}
+function lAdd(code,it,add,sep){const c=String(code).trim();let l=sep?null:LST.lines.find(x=>U(x.c)==U(c)||(it&&x.id==it.id));if(!l){l={c,id:it?it.id:0,n:it?it.n:'',q:0};LST.lines.push(l)}l.q=Math.round(((+l.q||0)+add)*1000)/1000;LREC=[l,...LREC.filter(x=>x!=l)];lSave(1);lDraw();
+ const r=document.querySelector('[data-li="'+LST.lines.indexOf(l)+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}return l}
+function listHit(code,msg){const it=find(code),key=it?(it.a||it.n):code,ex=LST.lines.find(x=>U(x.c)==U(key)||(it&&x.id==it.id));if(SET.prohibit&&ex){beep(0);return msg('⛔ Already in this list: '+(it?it.n:code),'bad')}
+ const add=askQ(it?it.n:code);if(add==null)return msg('Skipped');const l=lAdd(key,it,add,!SET.combine);beep(!!it);msg((it?'✔ ':'❓ ')+(it?it.n:code+' (not in WONDER)')+'  =  '+l.q,it?'ok':'bad')}
 function lText(){return LST.name+' – '+ME.name+' ('+SHOP+')\n'+LST.lines.map(l=>(l.n||l.c)+(l.n?' ['+l.c+']':'')+' : '+l.q).join('\n')+'\nTotal items '+LST.lines.length}
 async function lShare(){if(!LST.lines.length)return toast('List is empty');const t=lText(),csv='Code,Item,Qty\n'+LST.lines.map(l=>[l.c,l.n||'',l.q].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
  try{const f=new File([csv],LST.name.replace(/[^A-Za-z0-9 _-]/g,'_')+'.csv',{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[f]}))return await navigator.share({files:[f],text:t,title:LST.name});if(navigator.share)return await navigator.share({text:t,title:LST.name})}catch(e){if(e.name=='AbortError')return}
@@ -229,7 +281,7 @@ async function joinCode(j){setPin('',{c:j});const su=$('#su');su.placeholder='ch
 function start(p){p=p||{};TOK=ls('wm_tok')||'';if(TOK)return home();const j=JOIN||p.j;if(j)return joinCode(j);if(p.k&&p.u)return setPin('',{u:p.u,c:p.k});login()}
 const P={};new URLSearchParams(location.search).forEach((v,k)=>P[k]=v);$('#sub').textContent=SHOP;run('mInfo').then(i=>{if(i&&i.shop){SHOP=i.shop;localStorage.setItem('wm_shop',SHOP);if(!ME)$('#sub').textContent=SHOP}}).catch(()=>{});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-if(JOIN)history.replaceState(null,'',location.pathname);start(P)
+if(JOIN)history.replaceState(null,'',location.pathname);start(P);setTimeout(()=>upCheck(false),1500)
 </script>
 </body>
 </html>
