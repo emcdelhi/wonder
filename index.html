@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0f4c47">
+<title>WONDER Mobile</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f3f6f5;color:#1d2b2a;font-size:16px}
+.top{background:#0f4c47;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}.top .t{flex:1}.top b{font-size:17px}.top .s{opacity:.85;font-size:13px;margin-top:2px}
+.top button{background:#ffffff22;color:#fff;border:0;border-radius:8px;padding:8px 10px;font-size:14px}
+.wrap{padding:12px;max-width:640px;margin:auto}.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0001}
+input,textarea{font-size:17px;padding:11px 12px;border:1px solid #c9d6d3;border-radius:10px;width:100%;font-family:inherit}input:focus,textarea:focus{outline:2px solid #0f766e;border-color:#0f766e}
+label.l{display:block;font-size:13px;color:#6b7c79;margin:10px 0 4px}
+.btn{display:inline-block;border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:600;background:#0f766e;color:#fff;cursor:pointer}.btn.ghost{background:#e3f3f1;color:#0f4c47}.btn.warn{background:#b5600f}.btn.w{width:100%}.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row .btn{flex:0 0 auto}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:#fff;border-radius:14px;padding:16px 12px;box-shadow:0 1px 3px #0001;text-align:center;font-weight:600;cursor:pointer}.tile .i{font-size:30px}.tile .n{font-size:12px;color:#6b7c79;font-weight:400;margin-top:4px}
+.it{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #eef2f1}.it .nm{flex:1;min-width:0}.it .nm b{display:block;font-size:15px;word-break:break-word}.it .nm span{font-size:12px;color:#6b7c79}
+.it input{width:86px;flex:0 0 86px;text-align:right;padding:9px}.it.done input{background:#e9f7ee;border-color:#7cc59a}.it.dirty input{background:#fff7e6;border-color:#e0a84a}
+.it .x{border:0;background:none;color:#b42318;font-size:20px;padding:4px 6px}
+.note{font-size:13px;color:#6b7c79}.err{color:#b42318;font-weight:600;margin-top:8px}.ok{color:#0f766e;font-weight:600}.lnk{color:#0f766e;text-decoration:underline;cursor:pointer;font-size:14px}
+.bar{position:sticky;bottom:0;background:#fff;padding:10px 12px;box-shadow:0 -2px 6px #0001;display:flex;gap:8px;align-items:center}.bar .st{flex:1;font-size:13px;color:#6b7c79}
+.sheet{position:fixed;inset:0;background:#000c;z-index:20;display:flex;align-items:center;justify-content:center;padding:12px}.sheet .in{background:#fff;border-radius:14px;padding:12px;width:100%;max-width:520px}
+video{width:100%;border-radius:10px;background:#000;max-height:60vh}.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#1d2b2a;color:#fff;padding:10px 16px;border-radius:20px;z-index:30;font-size:14px;max-width:90%}
+.tabs{display:flex;gap:6px;margin:4px 0 8px}.tabs button{flex:1;border:0;border-radius:8px;padding:9px;background:#e9eeed;font-weight:600}.tabs button.on{background:#0f766e;color:#fff}
+.pill{padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600}.tot{font-size:18px;font-weight:700;text-align:right}
+.cam{position:relative;background:#000;border-radius:14px;overflow:hidden;height:36vh;margin-bottom:10px}.cam video{width:100%;height:100%;object-fit:cover;max-height:none;border-radius:0}
+.cam .aim{position:absolute;left:12%;right:12%;top:50%;height:2px;background:#ef4444cc;box-shadow:0 0 8px #ef4444}.cam .ctl{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.cam .ctl button{border:0;border-radius:20px;background:#0009;color:#fff;padding:7px 12px;font-size:13px;font-weight:600}.cam .msg{position:absolute;left:8px;right:8px;bottom:8px;background:#000a;color:#fff;border-radius:10px;padding:7px 10px;font-size:14px;font-weight:600;min-height:20px}
+.cam .msg.ok{background:#0f766ee6}.cam .msg.bad{background:#b42318e6}.camoff{display:flex;align-items:center;justify-content:center;color:#9ca3af;height:100%;font-size:14px}.it.flash{animation:fl 1.2s}@keyframes fl{0%{background:#bbf7d0}100%{background:transparent}}
+</style>
+</head>
+<body>
+<div class=top><div class=t><b id=ttl>WONDER Mobile</b><div class=s id=sub></div></div><button id=hb style="display:none">⌂</button></div>
+<div class=wrap id=app></div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbzl13KzBGmSsTvoE_o-jtevudsTVAdV5VyKa6sNtb4WzulJ-iy4X30opOmxB0pW6Y7ApQ/exec';let SHOP=localStorage.getItem('wm_shop')||'';const JOIN=(new URLSearchParams(location.search).get('j')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();let TOK='',ME=null,ITEMS=null,PARTIES=null,CT='',M=null,IT=[],Q={},DIRTY={},CLR=new Set(),TAB='list',busy=false,lastSave=0,QT=null;
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),U=s=>String(s||'').trim().toUpperCase(),dmy=d=>String(d||'').split('-').reverse().join('-'),f2=n=>(Math.round((+n||0)*100)/100).toLocaleString('en-IN',{maximumFractionDigits:2});
+function toast(t,ms){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),ms||2200)}
+function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(_){return null}}
+async function run(fn,...a){let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({mrun:fn,args:a})})}catch(e){throw new Error('No internet – try again')}let j;try{j=await r.json()}catch(e){throw new Error('Shop server did not answer – try again')}if(!j.ok)throw new Error(j.err||'Error');return j.res}
+async function call(fn,...a){try{return await run(fn,TOK,...a)}catch(e){if(/log in again/i.test(e.message)){TOK='';ls('wm_tok',null);login(e.message);throw new Error('stop')}throw e}}
+function hb(show){$('#hb').style.display=show?'':'none'}
+$('#hb').onclick=async()=>{if(CT&&(Object.keys(DIRTY).length||CLR.size))await save(false);home()};
+/* ---------- login / PIN ---------- */
+function login(msg,pre){hb(0);$('#ttl').textContent='WONDER Mobile';$('#sub').textContent=SHOP;const u=(pre&&pre.u)||ls('wm_user')||'';
+ $('#app').innerHTML=`<div class=card><h3 style="margin-top:0">Log in</h3><label class=l>User name (same as WONDER)</label><input id=lu value="${esc(u)}" autocomplete=username autocapitalize=none>
+  <label class=l>PIN</label><input id=lp type=password inputmode=numeric maxlength=6 placeholder="••••" autocomplete=current-password><div style="height:12px"></div>
+  <button class="btn w" id=lgo>Log in</button><div class=err id=le>${esc(msg||'')}</div><div style="height:12px"></div><span class=lnk id=lfirst>First time / Forgot PIN →</span></div>
+  <div class=card><p class=note style="margin:0">Tip: Chrome menu ⋮ → <b>Install app</b> (or Add to Home screen) – then WONDER Mobile opens like an app with its own icon.</p></div>`;
+ const go=async()=>{const user=$('#lu').value.trim(),pin=$('#lp').value.trim();if(!user)return $('#le').textContent='Write your user name';if(!/^\d{4,6}$/.test(pin))return $('#le').textContent='PIN is 4–6 digits';
+  $('#lgo').disabled=true;$('#le').textContent='';try{const r=await run('mLogin',user,pin);TOK=r.tok;ls('wm_tok',TOK);ls('wm_user',user);home()}catch(e){$('#lgo').disabled=false;$('#le').textContent=e.message}};
+ $('#lgo').onclick=go;$('#lp').onkeydown=e=>{if(e.key=='Enter')go()};$('#lfirst').onclick=()=>setPin('',{u:$('#lu').value.trim()});(u?$('#lp'):$('#lu')).focus()}
+function setPin(msg,pre){hb(0);const u=(pre&&pre.u)||'',c=(pre&&pre.c)||'';
+ $('#app').innerHTML=`<div class=card><h3 style="margin-top:0">Set your PIN</h3><p class=note>Use the <b>setup code</b> from the shop (it works once). Choose your own 4–6 digit PIN – nobody else sees it.</p>
+  <label class=l>User name</label><input id=su value="${esc(u)}" autocapitalize=none><label class=l>Setup code</label><input id=sc value="${esc(c)}" autocapitalize=characters placeholder="e.g. K7M2QX">
+  <label class=l>New PIN</label><input id=sp1 type=password inputmode=numeric maxlength=6><label class=l>New PIN again</label><input id=sp2 type=password inputmode=numeric maxlength=6>
+  <div style="height:12px"></div><button class="btn w" id=sgo>Save PIN &amp; log in</button><div class=err id=se>${esc(msg||'')}</div>
+  <div style="height:14px"></div><span class=lnk id=sask>No setup code? Ask the shop for one</span> &nbsp; <span class=lnk id=sback>← Back</span></div>`;
+ $('#sgo').onclick=async()=>{const user=$('#su').value.trim(),code=$('#sc').value.trim(),p1=$('#sp1').value.trim(),p2=$('#sp2').value.trim();
+  if(!user||!code)return $('#se').textContent='Write user name and setup code';if(!/^\d{4,6}$/.test(p1))return $('#se').textContent='PIN must be 4–6 digits';if(p1!==p2)return $('#se').textContent='The two PINs are not the same';
+  $('#sgo').disabled=true;try{const r=await run('mSetPin',user,code,p1);TOK=r.tok;ls('wm_tok',TOK);ls('wm_user',user);toast('✔ PIN saved');home()}catch(e){$('#sgo').disabled=false;$('#se').textContent=e.message}};
+ $('#sask').onclick=async()=>{const user=$('#su').value.trim();if(!user)return $('#se').textContent='Write your user name first';try{await run('mForgot',user);$('#se').innerHTML='<span class=ok>✔ Request sent – the shop will give you a new setup code.</span>'}catch(e){$('#se').textContent=e.message}};
+ $('#sback').onclick=()=>login();}
+/* ---------- home ---------- */
+async function home(){camStop();CT='';M=null;QT=null;hb(0);$('#ttl').textContent='WONDER Mobile';$('#app').innerHTML='<div class=card><p class=note>Loading…</p></div>';
+ try{ME=await call('mHome')}catch(e){if(e.message!='stop')$('#app').innerHTML='<div class=card><b class=err>'+esc(e.message)+'</b><div style="height:10px"></div><button class="btn ghost" onclick="home()">Try again</button></div>';return}
+ $('#sub').textContent='Hello '+ME.name+' · '+SHOP;const F=ME.flags||{},open=ME.counts.filter(c=>c.status=='open').length,sent=(ls('wm_q_'+U(ME.name))||[]);
+ $('#app').innerHTML=`<div class=tiles>${F.count?`<div class=tile id=tc><div class=i>📦</div>Stock count<div class=n>${open?open+' to count':'nothing to count'}</div></div>`:''}
+  ${F.quote?`<div class=tile id=tq><div class=i>📝</div>New quotation<div class=n>${sent.length?sent.length+' sent':'send to the shop'}</div></div>`:''}
+  <div class=tile id=ti><div class=i>🔍</div>Items<div class=n>${F.rate||F.stock?'rates'+(F.stock?' & stock':''):'name & code'}</div></div>
+  <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div></div>
+  ${F.quote&&sent.length?`<div class=card style="margin-top:12px"><b>Quotations sent from this phone</b>${sent.slice(-10).reverse().map(q=>`<div class=it><div class=nm><b>${esc(q.party||q.phone)}</b><span>${esc(q.id)} · ${esc(q.at)} · ${q.n} items${q.t?' · ₹'+f2(q.t):''}</span></div></div>`).join('')}</div>`:''}
+  ${ME.mc?`<div class=card style="margin-top:12px;background:#fff7e6;border:1px solid #e0a84a"><b>🔑 Your PIN is still 1234</b><p class=note style="margin:6px 0">Everybody knows 1234. Make your own PIN – takes 10 seconds.</p><button class="btn" id=mcp>Make my PIN</button></div>`:''}
+  ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
+ $('#tc')&&($('#tc').onclick=counts);$('#tq')&&($('#tq').onclick=()=>quote());$('#ti').onclick=items;$('#tp').onclick=pinMenu;$('#mcp')&&($('#mcp').onclick=()=>{pinMenu();$('#o1').value='1234';$('#o2').focus()})}
+async function loadItems(){if(ITEMS)return ITEMS;$('#app').innerHTML='<div class=card><p class=note>Loading items…</p></div>';ITEMS=await call('mItems');return ITEMS}
+function pinMenu(){hb(1);$('#ttl').textContent='Change PIN';$('#app').innerHTML=`<div class=card><label class=l>Old PIN</label><input id=o1 type=password inputmode=numeric maxlength=6><label class=l>New PIN</label><input id=o2 type=password inputmode=numeric maxlength=6><label class=l>New PIN again</label><input id=o3 type=password inputmode=numeric maxlength=6>
+ <div style="height:12px"></div><button class="btn w" id=ogo>Change PIN</button><div class=err id=oe></div></div><div class=card><button class="btn ghost w" id=lo>Log out from this phone</button></div>`;
+ $('#ogo').onclick=async()=>{const a=$('#o1').value.trim(),b=$('#o2').value.trim();if(b!==$('#o3').value.trim())return $('#oe').textContent='The two new PINs are not the same';try{await call('mChangePin',a,b);toast('✔ PIN changed');home()}catch(e){if(e.message!='stop')$('#oe').textContent=e.message}};
+ $('#lo').onclick=async()=>{try{await run('mLogout',TOK)}catch(_){}TOK='';ls('wm_tok',null);ITEMS=null;login('Logged out')}}
+/* ---------- items lookup ---------- */
+async function items(){hb(1);$('#ttl').textContent='Items';try{await loadItems()}catch(e){if(e.message!='stop')toast(e.message);return}const F=ME.flags||{};
+ $('#app').innerHTML=`<div class=card><div class=row><input id=iq placeholder="Search name / code" autocomplete=off><button class="btn ghost" id=isc>📷</button></div><div id=il></div></div>`;
+ const draw=()=>{const q=U($('#iq').value),ws=q.split(/\s+/).filter(Boolean),L=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,60):[];
+  $('#il').innerHTML=L.map(i=>`<div class=it><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u,i.g].filter(Boolean).join(' · '))}</span></div><div style="text-align:right;font-size:14px">${F.rate&&i.r>0?'₹'+f2(i.r):''}${F.rate&&i.m?'<div class=note>MRP '+f2(i.m)+'</div>':''}${F.stock&&i.s!=null?'<div class=note>Stock '+f2(i.s)+'</div>':''}${i.v!=null?'<div class=note>Value ₹'+f2(i.v)+'</div>':''}</div></div>`).join('')||`<p class=note>${q?'No item found':'Type a name or code, or scan.'}</p>`};
+ $('#iq').oninput=draw;$('#isc').onclick=()=>camScan(t=>{const it=find(t);$('#iq').value=it?(it.a||it.n):t;draw()});draw();$('#iq').focus()}
+function find(code){const c=U(code);return (ITEMS||IT).find(i=>U(i.a)==c)||(ITEMS||IT).find(i=>U(i.n)==c)}
+/* ---------- quotation ---------- */
+async function quote(){hb(1);$('#ttl').textContent='New quotation';try{await loadItems();if(!PARTIES)PARTIES=await call('mParties')}catch(e){if(e.message!='stop')toast(e.message);return}
+ const F=ME.flags||{};QT=ls('wm_draft_'+U(ME.name))||{party:'',phone:'',note:'',lines:[]};
+ $('#app').innerHTML=`<div class=card><label class=l>Party</label><input id=qp list=qpl value="${esc(QT.party)}" placeholder="Customer name" autocomplete=off><datalist id=qpl>${PARTIES.slice(0,3000).map(p=>`<option value="${esc(p.n)}">${esc(p.c||'')}</option>`).join('')}</datalist>
+  <label class=l>Mobile (10 digits)</label><input id=qm inputmode=numeric maxlength=10 value="${esc(QT.phone)}"></div>
+  <div class=card><div class=row><input id=qs placeholder="Add item: name / code" autocomplete=off><button class="btn ghost" id=qsc>📷</button></div><div id=qr></div><div id=ql></div><div class=tot id=qt></div>
+  <label class=l>Note</label><input id=qn value="${esc(QT.note)}" placeholder="optional"></div>
+  <div class=bar><div class=st id=qst>Draft is kept on this phone</div><button class="btn ghost" id=qclr>Clear</button><button class="btn" id=qgo>Send to shop</button></div>`;
+ const keepQ=()=>{QT.party=$('#qp').value.trim();QT.phone=$('#qm').value.trim();QT.note=$('#qn').value.trim();ls('wm_draft_'+U(ME.name),QT)};
+ const byId=id=>ITEMS.find(i=>i.id==id);
+ const drawL=()=>{let t=0;$('#ql').innerHTML=QT.lines.map((l,k)=>{const it=byId(l.id)||{n:'?'};const amt=F.rate&&l.r!==''&&l.r!=null?(+l.q||0)*(+l.r||0):null;if(amt!=null)t+=amt;
+   return`<div class=it><div class=nm><b>${esc(it.n)}</b><span>${esc([it.a,it.u].filter(Boolean).join(' · '))}${amt!=null?' · ₹'+f2(amt):''}</span></div><input data-k=${k} data-f=q inputmode=decimal value="${esc(l.q)}" placeholder="qty">${F.rate?`<input data-k=${k} data-f=r inputmode=decimal value="${esc(l.r==null?'':l.r)}" placeholder="rate">`:''}<button class=x data-x=${k}>✕</button></div>`}).join('')||'<p class=note>No items yet.</p>';
+  $('#qt').textContent=F.rate&&QT.lines.length?'Total ₹'+f2(t):'';QT.t=F.rate?t:0};
+ const add=it=>{if(!it)return;let k=QT.lines.findIndex(l=>l.id==it.id);if(k<0){QT.lines.push({id:it.id,q:'',r:F.rate&&it.r>0?it.r:''});k=QT.lines.length-1}$('#qs').value='';$('#qr').innerHTML='';keepQ();drawL();const x=document.querySelector('[data-k="'+k+'"][data-f=q]');x&&(x.focus(),x.select())};
+ $('#qs').oninput=()=>{const ws=U($('#qs').value).split(/\s+/).filter(Boolean),L=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,30):[];$('#qr').innerHTML=L.map(i=>`<div class=it data-a=${i.id} style="cursor:pointer"><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u].filter(Boolean).join(' · '))}</span></div><span class=ok>＋</span></div>`).join('')};
+ $('#qr').onclick=e=>{const r=e.target.closest('[data-a]');if(r)add(byId(r.dataset.a))};
+ $('#qs').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();const it=find($('#qs').value);if(it)add(it)}};$('#qsc').onclick=()=>camScan(t=>{const it=find(t);if(it)add(it);else{$('#qs').value=t;$('#qs').oninput()}});
+ $('#ql').addEventListener('input',e=>{const x=e.target.closest('[data-k]');if(!x)return;QT.lines[+x.dataset.k][x.dataset.f]=x.value.trim();keepQ();let t=0;QT.lines.forEach(l=>{if(F.rate&&l.r!==''&&l.r!=null)t+=(+l.q||0)*(+l.r||0)});$('#qt').textContent=F.rate&&QT.lines.length?'Total ₹'+f2(t):'';QT.t=F.rate?t:0});
+ $('#ql').onclick=e=>{const b=e.target.closest('[data-x]');if(b){QT.lines.splice(+b.dataset.x,1);keepQ();drawL()}};
+ ['#qp','#qm','#qn'].forEach(s=>$(s).oninput=keepQ);
+ $('#qclr').onclick=()=>{if(!confirm('Clear this quotation?'))return;ls('wm_draft_'+U(ME.name),null);quote()};
+ $('#qgo').onclick=async()=>{keepQ();const L=QT.lines.filter(l=>+l.q>0);if(!L.length)return toast('Add an item with qty');if(!QT.party&&QT.phone.replace(/\D/g,'').length!=10)return toast('Write party name or 10-digit mobile');
+  $('#qgo').disabled=true;$('#qst').textContent='Sending…';try{const r=await call('mQuote',{party:QT.party,phone:QT.phone,note:QT.note,lines:L.map(l=>({id:l.id,q:+l.q,r:l.r}))});
+   const H=ls('wm_q_'+U(ME.name))||[];H.push({id:r.id,party:QT.party,phone:QT.phone,n:L.length,t:QT.t||0,at:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false})});ls('wm_q_'+U(ME.name),H.slice(-30));
+   ls('wm_draft_'+U(ME.name),null);toast('✔ Sent to the shop – '+r.id,3000);home()}catch(e){$('#qgo').disabled=false;if(e.message!='stop')$('#qst').innerHTML='<span class=err>'+esc(e.message)+'</span>'}};
+ drawL()}
+/* ---------- stock count ---------- */
+const ST={open:['To count','#0f766e','#e3f3f1'],submitted:['Submitted ✓','#555','#eee']};
+async function counts(){hb(1);$('#ttl').textContent='📦 Stock count';const L=(ME.counts||[]).sort((a,b)=>(a.status!='open')-(b.status!='open')||String(b.no).localeCompare(String(a.no),undefined,{numeric:true}));
+ $('#app').innerHTML=`<div class=card><h3 style="margin:0 0 6px">What to count</h3>${L.map(c=>{const st=ST[c.status]||ST.open;return`<div class=it data-c="${c.tok}" style="cursor:pointer"><div class=nm><b>Count No. ${esc(c.no)} · ${esc(c.mc)}</b><span>${esc([dmy(c.date),c.note,c.n?c.n+' items':'any item',c.mine?'for you':'for all staff'].filter(Boolean).join(' · '))}</span></div><span class=pill style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>`}).join('')||'<p class=note>Nothing to count right now. 🙂</p>'}
+  <div style="height:8px"></div><button class="btn ghost w" id=rf>↻ Refresh</button></div>`;
+ document.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>openC(x.dataset.c));$('#rf').onclick=async()=>{await home();counts()}}
+async function openC(tok){$('#app').innerHTML='<div class=card><p class=note>Opening…</p></div>';
+ try{const r=await call('mCntOpen',tok);CT=tok;M={status:r.meta.status,meta:r.meta,list:r.list};IT=r.items||[];Q={};DIRTY={};CLR=new Set();RECENT=[];Object.keys(r.q||{}).forEach(id=>Q[id]=r.q[id].c);
+  const s=ls('wc_'+tok)||{};Object.keys(s).forEach(id=>{if(IT.some(i=>i.id==id)){DIRTY[id]=s[id];Q[id]=s[id]}});
+  $('#ttl').textContent='📦 Count No. '+(r.meta.no||'');TAB=M.list?'list':'done';lastSave=0;draw()}
+ catch(e){if(e.message!='stop'){toast(e.message,3000);home()}}}
+function itemRow(i){const v=Q[i.id],d=i.id in DIRTY;return`<div class="it ${d?'dirty':v!=null?'done':''}" data-id=${i.id}><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u,i.g].filter(Boolean).join(' · '))}</span></div><input inputmode=decimal data-q=${i.id} value="${v==null?'':v}" placeholder="qty" ${M.status!='open'?'disabled':''}></div>`}
+function listNow(){const q=U($('#sq').value);if(q){const ws=q.split(/\s+/);return IT.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,60)}
+ if(TAB=='done'){const L=IT.filter(i=>Q[i.id]!=null),k=id=>{const x=RECENT.indexOf(id);return x<0?1e9:x};return L.sort((p,q)=>k(p.id)-k(q.id))}return M.list?IT:IT.filter(i=>Q[i.id]!=null)}
+function draw(){const open=M.status=='open';camStop();
+ $('#app').innerHTML=`${open?camPanel():''}${open?'':`<div class=card><b class=ok>✔ Submitted – the shop will check it. Ask the shop to re-open it if you need to change something.</b></div>`}
+  <div class=card><div class=row><input id=sq placeholder="Search name / code" autocomplete=off><button class="btn ghost" id=scan>📷 Scan</button></div>
+  <div class=tabs>${M.list?'<button data-t=list>To count ('+IT.length+')</button>':''}<button data-t=done>Counted (<span id=nc>0</span>)</button></div><div id=lst></div></div>
+  <div class=bar><div class=st id=st></div>${open?'<button class="btn ghost" id=sv>Save</button><button class="btn warn" id=sb>Submit</button>':''}</div>`;
+ $('#sq').oninput=drawList;$('#sq').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();pick($('#sq').value)}};$('#scan').onclick=()=>camScan(pick);if(open){$('#lct').onclick=()=>{LC.on=!LC.on;ls('wm_camon',LC.on);const y=window.scrollY;draw();window.scrollTo(0,y)};if(LC.on)camStart(scanHit)}
+ document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;$('#sq').value='';drawList()});
+ if(open){$('#sv').onclick=()=>save(false);$('#sb').onclick=submit}
+ $('#lst').addEventListener('input',e=>{const x=e.target.closest('[data-q]');if(!x)return;const id=x.dataset.q,v=x.value.trim();if(v===''){delete Q[id];delete DIRTY[id];CLR.add(id)}else if(isFinite(+v)&&+v>=0){Q[id]=+v;DIRTY[id]=+v;CLR.delete(id)}keep();x.closest('.it').className='it dirty';status()});
+ $('#lst').addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.matches('[data-q]')){e.preventDefault();$('#sq').value='';$('#sq').focus();drawList()}});
+ drawList();status()}
+function drawList(){const L=listNow();document.querySelectorAll('[data-t]').forEach(b=>b.className=b.dataset.t==TAB&&!$('#sq').value?'on':'');
+ $('#lst').innerHTML=L.map(itemRow).join('')||`<p class=note>${$('#sq').value?'No item found':'Nothing counted yet. Search or scan an item.'}</p>`;status()}
+function status(){if(!$('#st'))return;const dn=Object.keys(DIRTY).length+CLR.size;$('#st').innerHTML=dn?`<span style="color:#b5600f">${dn} not saved</span>`:(lastSave?'✔ Saved '+new Date(lastSave).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}):'');$('#nc')&&($('#nc').textContent=Object.keys(Q).length)}
+function keep(){ls('wc_'+CT,DIRTY)}
+function pick(code){code=String(code||'').trim();if(!code)return false;const c=U(code),it=IT.find(i=>U(i.a)==c)||IT.find(i=>U(i.n)==c);if(!it){$('#sq').value=code;drawList();toast('Not found by code – pick from the list');return true}
+ $('#sq').value=it.a||it.n;drawList();const x=document.querySelector('[data-q="'+it.id+'"]');if(x){x.focus();x.select()}return true}
+async function save(sub){if(busy||!CT)return;const L={...DIRTY},C=[...CLR];if(!Object.keys(L).length&&!C.length&&!sub){status();return}busy=true;$('#st')&&($('#st').textContent='Saving…');
+ try{const r=await call('mCntSave',CT,L,C,!!sub);Object.keys(L).forEach(k=>{if(DIRTY[k]===L[k])delete DIRTY[k]});C.forEach(k=>CLR.delete(k));keep();lastSave=Date.now();M.status=r.status;
+  if(sub){draw();toast('✔ Submitted – thank you!',3000)}else document.querySelectorAll('.it.dirty').forEach(x=>{if(!(x.dataset.id in DIRTY))x.className='it done'});status()}
+ catch(e){if(e.message!='stop'&&$('#st'))$('#st').innerHTML='<span class=err>'+esc(e.message)+' – kept on this phone, will retry</span>'}finally{busy=false}}
+function submit(){const n=Object.keys(Q).length;if(!n)return toast('Nothing counted yet');if(!confirm('Submit '+n+' counted item(s) to the shop?\nAfter this you cannot change it.'))return;save(true)}
+setInterval(()=>{if(CT&&M&&M.status=='open'&&(Object.keys(DIRTY).length||CLR.size))save(false)},20000);
+window.addEventListener('online',()=>{if(CT)save(false)});
+/* ---------- camera scan: built-in BarcodeDetector, else ZXing (no double slash in this script!) ---------- */
+function zx(){return new Promise((ok,no)=>{if(window.ZXing)return ok();const s=document.createElement('script');s.src='https:\/\/unpkg.com\/@zxing\/library@0.21.3\/umd\/index.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function camScan(cb){const sh=document.createElement('div');sh.className='sheet';sh.innerHTML='<div class=in><b>📷 Scan barcode</b><video id=cv playsinline muted style="display:none"></video><label class="btn w" style="text-align:center;margin:8px 0;display:block;width:100%;box-sizing:border-box">📸 Take photo of the barcode<input id=cvf type=file accept="image/*" capture=environment style="display:none"></label><div class=note id=cvn style="min-height:20px;margin:6px 0">Keep the barcode in the middle, close and sharp.</div><button class="btn ghost w" id=cvx>Close</button></div>';document.body.appendChild(sh);
+ let gone=false,stream=null,rd=null;const stop=()=>{if(gone)return;gone=true;try{stream&&stream.getTracks().forEach(t=>t.stop())}catch(_){}try{rd&&rd.reset()}catch(_){}sh.remove()};sh.querySelector('#cvx').onclick=stop;
+ const hit=t=>{if(gone)return;try{navigator.vibrate&&navigator.vibrate(60)}catch(_){}stop();cb(t)};const v=sh.querySelector('#cv'),nt=sh.querySelector('#cvn');
+ sh.querySelector('#cvf').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;nt.textContent='Reading the photo…';
+  try{const bmp=await createImageBitmap(f),s=Math.min(1,1600/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+   let t='';if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(c);if(r&&r[0])t=r[0].rawValue}catch(_){}}
+   if(!t){await zx();try{const r=await new ZXing.BrowserMultiFormatReader().decodeFromImageUrl(c.toDataURL('image/jpeg',.92));t=r&&r.getText()}catch(_){}}
+   if(t)return hit(t);nt.textContent='No barcode found in the photo – try again closer, or type the code.'}catch(err){nt.textContent='Could not read the photo ('+(err.message||err)+')'}e.target.value=''};
+ try{if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return;
+  if('BarcodeDetector' in window){const bd=new BarcodeDetector();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});if(gone)return stop();v.style.display='';v.srcObject=stream;await v.play();nt.textContent='Hold the barcode in front of the camera, or take a photo.';
+   const loop=async()=>{if(gone)return;try{const r=await bd.detect(v);if(r&&r[0])return hit(r[0].rawValue)}catch(_){}setTimeout(loop,180)};loop();return}
+  await zx();rd=new ZXing.BrowserMultiFormatReader();await rd.decodeFromConstraints({video:{facingMode:'environment'}},v,res=>{if(res)hit(res.getText())});v.style.display=''}
+ catch(e){v.style.display='none';if(!gone)nt.textContent='Camera not allowed – allow camera for this app in phone settings, or tap "Take photo of the barcode".'}}
+/* ---------- live scanner (count screen): camera stays on, every scan = +1 ---------- */
+const LC={on:ls('wm_camon')!==false,stream:null,rd:null,bd:null,last:'',lastAt:0,run:0};
+function camPanel(){return`<div class=cam id=cam>${LC.on?'<video id=lcv playsinline muted autoplay></video><div class=aim></div>':'<div class=camoff>Camera off</div>'}<div class=ctl><button id=lct>${LC.on?'⏸ Camera off':'▶ Camera on'}</button></div><div class=msg id=lcm>${LC.on?'Point at the barcode – every scan adds 1':'Tap "Camera on" to scan'}</div></div>`}
+function camStop(){LC.run++;try{LC.stream&&LC.stream.getTracks().forEach(t=>t.stop())}catch(_){}try{LC.rd&&LC.rd.reset()}catch(_){}LC.stream=null;LC.rd=null}
+async function camStart(onCode){camStop();const my=++LC.run,v=$('#lcv');if(!v)return;const msg=(t,c)=>{const m=$('#lcm');if(m){m.textContent=t;m.className='msg '+(c||'')}};
+ const got=t=>{if(my!=LC.run||!t)return;const now=Date.now();if(t==LC.last&&now-LC.lastAt<1600){LC.lastAt=now;return}LC.last=t;LC.lastAt=now;onCode(t,msg)};
+ try{if('BarcodeDetector' in window){LC.bd=LC.bd||new BarcodeDetector();LC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});if(my!=LC.run){LC.stream.getTracks().forEach(t=>t.stop());return}
+   v.srcObject=LC.stream;await v.play();const loop=async()=>{if(my!=LC.run)return;try{const r=await LC.bd.detect(v);if(r&&r[0])got(r[0].rawValue)}catch(_){}setTimeout(loop,120)};loop();return}
+  await zx();if(my!=LC.run)return;LC.rd=new ZXing.BrowserMultiFormatReader();await LC.rd.decodeFromConstraints({video:{facingMode:'environment'}},v,res=>{if(res)got(res.getText())})}
+ catch(e){msg('Camera not available ('+(e.name||e.message)+') – allow camera for this app, or type the code','bad')}}
+function beep(ok){try{const c=beep.c||(beep.c=new (window.AudioContext||window.webkitAudioContext)()),o=c.createOscillator(),g=c.createGain();o.frequency.value=ok?1250:300;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(ok?.09:.3))}catch(_){}try{navigator.vibrate&&navigator.vibrate(ok?50:[80,60,80])}catch(_){}}
+let RECENT=[];
+document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if($('#lcv')&&LC.on&&CT)camStart(scanHit)});
+function scanHit(code,msg){const c=U(code),it=IT.find(i=>U(i.a)==c)||IT.find(i=>U(i.n)==c);
+ if(!it){beep(0);return msg('❌ '+code+' – not in this count','bad')}
+ const q=(+Q[it.id]||0)+1;Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();beep(1);RECENT=[it.id,...RECENT.filter(x=>x!=it.id)];msg('✔ '+it.n+'  =  '+q,'ok');
+ if($('#sq').value)$('#sq').value='';TAB='done';drawList();const r=document.querySelector('.it[data-id="'+it.id+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}
+/* ---------- start: setup link (?app=1&u=NAME&c=CODE) or saved login ---------- */
+async function joinCode(j){setPin('',{c:j});const su=$('#su');su.placeholder='checking the link…';try{const n=await run('mCodeUser',j);su.value=n;su.readOnly=true;$('#sp1').focus()}catch(e){login(e.message)}}
+function start(p){p=p||{};TOK=ls('wm_tok')||'';if(TOK)return home();const j=JOIN||p.j;if(j)return joinCode(j);if(p.k&&p.u)return setPin('',{u:p.u,c:p.k});login()}
+const P={};new URLSearchParams(location.search).forEach((v,k)=>P[k]=v);$('#sub').textContent=SHOP;run('mInfo').then(i=>{if(i&&i.shop){SHOP=i.shop;localStorage.setItem('wm_shop',SHOP);if(!ME)$('#sub').textContent=SHOP}}).catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(JOIN)history.replaceState(null,'',location.pathname);start(P)
+</script>
+</body>
+</html>
