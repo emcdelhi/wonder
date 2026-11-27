@@ -322,7 +322,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 01:42';
+const APP_V='28-Nov-2026 01:55';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -445,7 +445,7 @@ function genie(){hb(1);document.body.classList.add('gnon');if(!GN.length){const 
  gnDraw()}
 /* 📤 share a Genie answer straight to WhatsApp (with the question above it) */
 function gnShare(i){const m=GN[i];if(!m)return;let q='';for(let k=i-1;k>=0;k--)if(GN[k].role=='user'){q=GN[k].content;break}
- const t=(q?'❓ '+q+'\n\n':'')+String(m.content).replace(/\*\*(.+?)\*\*/g,'*$1*')+'\n\n– WONDER Genie';window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
+ const t=(q?'❓ '+q+'\n\n':'')+String(m.content).replace(/\*\*(.+?)\*\*/g,'*$1*')+'\n\n– WONDER Genie';if(t.length>1500&&navigator.share){navigator.share({text:t}).catch(()=>{});return}window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
 /* ---- Genie ＋ (28-Nov): photo of stock / items / bill, or barcode scan → ask the exact question ---- */
 let GNIMG=null;
 function gnPv(){const p=$('#gnpv');if(!p)return;p.innerHTML=GNIMG?`<div class=gpv><img src="${GNIMG}"><span>📷 Photo attached – tap it to zoom / rotate. Type your question (or just send)</span><b id=gnpx>✕</b></div>`:'';const x=$('#gnpx');if(x)x.onclick=()=>{GNIMG=null;gnPv()};const pi=p.querySelector('img');if(pi)pi.onclick=()=>gnView(GNIMG,true);const g=$('#gns');if(g)g.classList.toggle('on',!!(GNIMG||($('#gnq')&&$('#gnq').value.trim())))}
