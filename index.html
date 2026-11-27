@@ -72,7 +72,7 @@ body.gnon{background:#eff0ea}body.gnon .top{background:#1d211f}
 .gsl{max-height:22vh;overflow:auto;margin:6px 0 8px;font-size:14.5px;line-height:1.5;background:#f8fafc;border-radius:10px;padding:6px 10px}.gsl div{border-bottom:1px dashed #e2e8f0}
 .gview{position:fixed;inset:0;background:#000;z-index:70;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}.gview img{max-width:100%;max-height:100%;transform-origin:center;touch-action:none;user-select:none;-webkit-user-drag:none}.gvb{position:absolute;left:0;right:0;bottom:calc(18px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 10px}.gvb button{border:0;border-radius:22px;background:#ffffffeb;color:#111;font-weight:700;padding:11px 16px;font-size:15px}.gvh{position:absolute;top:calc(14px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#fff9;font-size:12.5px}.gpv img,.gth{cursor:zoom-in}
 .gsr{position:fixed;inset:0;z-index:65;background:#eff0ea;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}.gsrh{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:8px}.gsrh button{border:0;background:#1d211f;color:#fff;border-radius:50%;width:40px;height:40px;font-size:18px}
-.gsr #gsq{font-size:16px}.gch2{display:flex;gap:6px;overflow-x:auto;margin:8px 0 2px;padding-bottom:4px}.gch2 button{flex:0 0 auto;border:1px solid #d1d5db;background:#fff;border-radius:18px;padding:7px 13px;font-weight:700;font-size:13.5px}.gch2 button.on{background:#1d211f;color:#c6f135;border-color:#1d211f}
+.gsr #gsq{font-size:16px}.gch2{display:flex;gap:6px;overflow-x:auto;margin:8px 0 2px;padding-bottom:4px}.gch2 button{flex:0 0 auto;border:1px solid #d1d5db;background:#fff;border-radius:18px;padding:7px 13px;font-weight:700;font-size:13.5px}.gch2 button.on{background:#1d211f;color:#c6f135;border-color:#1d211f}.gch2 button small{font-weight:400;opacity:.6;font-size:11px}.gch2 button.zero{opacity:.35}.gcl{font-size:11.5px;color:#64748b;margin:6px 2px -4px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .gsr select{flex:1;min-width:0;font-size:14px;padding:9px;border-radius:10px;border:1px solid #d1d5db;background:#fff}.gsbar label{display:flex;align-items:center;gap:6px}.gsbar input{width:20px;height:20px}.gsbar{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:#475569;padding:4px 2px}.gsl2{flex:1;overflow:auto;background:#fff;border-radius:12px;padding:2px 8px}
 .gsi{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #f1f5f9}.gsi input{width:20px;height:20px;flex:0 0 20px}.gsi span{flex:1;display:flex;flex-direction:column;font-size:14.5px}.gsi small{color:#64748b}.gsi em{font-style:normal;font-weight:700;font-size:13.5px;white-space:nowrap}.gsft{display:flex;gap:8px;margin-top:8px}.gsft .btn{flex:1}
 .gsr.done{position:fixed;inset:0;z-index:65}
@@ -327,7 +327,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 01:58';
+const APP_V='28-Nov-2026 02:10';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -481,27 +481,38 @@ function gExport(T){const sh=document.createElement('div');sh.className='sheet';
 function gnExp(i){const m=GN[i];if(!m)return;let q='';for(let k=i-1;k>=0;k--)if(GN[k].role=='user'){q=GN[k].content.split('\n')[0];break}const T=gRows(m.content);if(q&&T.title=='WONDER Genie report')T.title=q.slice(0,60);gExport(T)}
 /* 🔍 search items by name / alias / code + filters (group, finish, size) → ask Genie, or a report straight away */
 const GFIN=['SMT','WMT','FAB','SHG','WHG','SPK','MBL','MTL'];
-async function gnSearch(){let L;try{L=await loadItems()}catch(e){return toast(e.message)}if(!$('#gnw'))genie();const F=ME.flags||{};const sz=[...new Set(L.map(i=>(String(i.n).match(/\d+(?:\.\d+)?\s*[*xX]\s*\d+(?:\.\d+)?/)||[''])[0].replace(/\s/g,'').replace(/[xX]/,'*')).filter(Boolean))].sort();const gr=[...new Set(L.map(i=>i.g).filter(Boolean))].sort();
- const st={q:'',fin:'',sz:'',g:'',sel:new Set()};const sh=document.createElement('div');sh.className='done gsr';
- sh.innerHTML=`<div class=gsrh><b>🔍 Search items</b><button id=gsx>✕</button></div><input id=gsq placeholder="Name / alias / code – e.g. 103, SHG, EMC000021" autocomplete=off>
-  <div class=gch2 id=gsf>${['All',...GFIN].map(f=>`<button data-f="${f=='All'?'':f}">${f}</button>`).join('')}</div>
-  <div class=row style="gap:6px;margin:6px 0"><select id=gss><option value="">Any size</option>${sz.map(z=>`<option>${esc(z)}</option>`).join('')}</select><select id=gsg><option value="">Any group</option>${gr.map(z=>`<option>${esc(z)}</option>`).join('')}</select></div>
+async function gnSearch(){let L;try{L=await loadItems()}catch(e){return toast(e.message)}if(!$('#gnw'))genie();const F=ME.flags||{};
+ const toks=i=>String(i.n||'').toUpperCase().replace(/\s+/g,' ').trim().split(' ');
+ const szOf=i=>{const m=String(i.n).match(/(\d+(?:\.\d+)?)\s*[*xX]\s*(\d+(?:\.\d+)?)/);if(!m)return '';let a=+m[1],b=+m[2];if(a<b)[a,b]=[b,a];return a+'*'+b};
+ const finOf=i=>{const t=toks(i);const f=new Set();t.forEach(w=>w.split('/').forEach(z=>{if(GFIN.includes(z))f.add(z)}));return f};
+ const NOTB=new Set(['HG','MT','PVC','TAPE','EDGE','BAND','NO.','NO','SS2']);
+ const brOf=i=>{const t=toks(i);let k=t.findIndex(w=>/^\d+(\.\d+)?[*X]\d/.test(w));if(k<0)k=t.length;for(let j=k-1;j>=1;j--){const w=t[j];if(w.split('/').some(z=>GFIN.includes(z)))break;if(!NOTB.has(w)&&/^[A-Z][A-Z0-9.\-]{0,9}$/.test(w))return w}return ''};
+ L.forEach(i=>{if(i._sz===undefined){i._sz=szOf(i);i._fin=finOf(i);i._br=i._fin.size?brOf(i):''}});
+ const cnt=k=>{const m={};L.forEach(i=>{const v=i[k];if(v)m[v]=(m[v]||0)+1});return Object.keys(m).sort((a,b)=>m[b]-m[a]||a.localeCompare(b)).map(v=>[v,m[v]])};
+ const SZ=cnt('_sz'),BR=cnt('_br').filter(x=>x[1]>=2);
+ const st={q:'',fin:new Set(),sz:new Set(),br:new Set(),sel:new Set()};const sh=document.createElement('div');sh.className='done gsr';
+ const chips=(id,arr,label)=>`<div class=gcl>${label}</div><div class=gch2 id=${id}><button data-v="">All</button>${arr.map(x=>`<button data-v="${esc(x[0])}">${esc(x[0])}</button>`).join('')}</div>`;
+ sh.innerHTML=`<div class=gsrh><b>🔍 Search items</b><button id=gsx>✕</button></div><input id=gsq placeholder="Name / alias / code – e.g. 103, EMC000021" autocomplete=off>
+  ${chips('gsf',GFIN.map(f=>[f,null]),'Finish')}${chips('gsb',BR,'Brand')}${chips('gss',SZ,'Size')}
   <div class=gsbar><label><input type=checkbox id=gsa> All</label><span id=gsn></span></div><div id=gsl2 class=gsl2></div>
   <div class=gsft><button class="btn" id=gsk>🧞 Ask Genie</button><button class="btn" id=gse style="background:#334155">⬇ Report</button></div>`;document.body.appendChild(sh);try{history.pushState({ov:1},'')}catch(_){}
- const fin=i=>{const u=' '+U(i.n)+' ';return GFIN.find(f=>u.includes(' '+f+' ')||u.includes(' '+f+'/')||u.includes('/'+f+' '))||''};
- const res=()=>{const ws=U(st.q).split(/\s+/).filter(Boolean);return L.filter(i=>{const h=U(i.n+' '+(i.a||'')+' '+(i.g||'')+' '+(i.x||[]).join(' '));return ws.every(w=>h.includes(w))&&(!st.fin||fin(i)==st.fin||(st.fin=='WMT'&&U(i.n).includes('WMT/FAB'))||(st.fin=='FAB'&&U(i.n).includes('WMT/FAB')))&&(!st.sz||String(i.n).replace(/\s/g,'').replace(/[xX](?=\d)/,'*').includes(st.sz))&&(!st.g||i.g==st.g)})};
- const draw=()=>{const R=res();sh.querySelector('#gsn').textContent=R.length+' item(s)'+(st.sel.size?' · '+st.sel.size+' ticked':'');sh.querySelectorAll('#gsf button').forEach(b=>b.classList.toggle('on',b.dataset.f==st.fin));
+ const ok=(i,skip)=>{const ws=U(st.q).split(/\s+/).filter(Boolean),h=U(i.n+' '+(i.a||'')+' '+(i.x||[]).join(' '));return ws.every(w=>h.includes(w))&&(skip=='f'||!st.fin.size||[...st.fin].some(f=>i._fin.has(f)))&&(skip=='s'||!st.sz.size||st.sz.has(i._sz))&&(skip=='b'||!st.br.size||st.br.has(i._br))};
+ const res=()=>L.filter(i=>ok(i));
+ const recount=()=>{[['#gsf','f',i=>[...i._fin]],['#gsb','b',i=>[i._br]],['#gss','s',i=>[i._sz]]].forEach(([id,k,val])=>{const m={};L.forEach(i=>{if(ok(i,k))val(i).forEach(v=>{if(v)m[v]=(m[v]||0)+1})});sh.querySelectorAll(id+' button[data-v]').forEach(b=>{const v=b.dataset.v;if(!v)return;const n=m[v]||0;let sm=b.querySelector('small');if(!sm){sm=document.createElement('small');b.appendChild(sm)}sm.textContent=' '+n;b.classList.toggle('zero',!n)})})};
+ const draw=()=>{const R=res();recount();sh.querySelector('#gsn').textContent=R.length+' item(s)'+(st.sel.size?' · '+st.sel.size+' ticked':'');
+  [['#gsf',st.fin],['#gsb',st.br],['#gss',st.sz]].forEach(([id,set])=>sh.querySelectorAll(id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v?set.has(b.dataset.v):!set.size)));
   sh.querySelector('#gsl2').innerHTML=R.slice(0,300).map(i=>`<label class=gsi><input type=checkbox data-i="${esc(String(i.id))}" ${st.sel.has(String(i.id))?'checked':''}><span><b>${esc(i.n)}</b><small>${esc([i.a,i.g].filter(Boolean).join(' · '))}</small></span><em>${F.stock&&i.s!=null?f2(i.s)+' '+esc(i.u||''):''}</em></label>`).join('')+(R.length>300?`<p class=note>Showing 300 of ${R.length} – "All" still takes all ${R.length}.</p>`:'')||'<p class=note>No item – change the words or filters.</p>'};
  const pick=()=>{const R=res();return st.sel.size?L.filter(i=>st.sel.has(String(i.id))):R};
- sh.querySelector('#gsq').oninput=e=>{st.q=e.target.value;draw()};sh.querySelector('#gss').onchange=e=>{st.sz=e.target.value;draw()};sh.querySelector('#gsg').onchange=e=>{st.g=e.target.value;draw()};
- sh.querySelector('#gsf').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;st.fin=b.dataset.f;draw()};
+ const tog=(id,set)=>{sh.querySelector(id).onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;if(!v)set.clear();else set.has(v)?set.delete(v):set.add(v);st.sel.clear();sh.querySelector('#gsa').checked=false;draw()}};
+ tog('#gsf',st.fin);tog('#gsb',st.br);tog('#gss',st.sz);
+ sh.querySelector('#gsq').oninput=e=>{st.q=e.target.value;draw()};
  sh.querySelector('#gsl2').onchange=e=>{const c=e.target.closest('[data-i]');if(!c)return;c.checked?st.sel.add(c.dataset.i):st.sel.delete(c.dataset.i);draw()};
  sh.querySelector('#gsa').onchange=e=>{st.sel=e.target.checked?new Set(res().map(i=>String(i.id))):new Set();draw()};
  const close=()=>{sh.remove()};sh.querySelector('#gsx').onclick=()=>{try{history.back()}catch(_){close()}};
- const ttl=()=>['Stock',st.fin,st.sz,st.g,st.q].filter(Boolean).join(' ');
+ const ttl=()=>['Stock',[...st.fin].join('+'),[...st.br].join('+'),[...st.sz].join('+'),st.q].filter(Boolean).join(' ');
  sh.querySelector('#gsk').onclick=()=>{const P=pick();if(!P.length)return toast('No item');const q=$('#gnq');if(q){q.value=(q.value.trim()?q.value.replace(/\n*$/,'\n'):'Inka stock kya hai?\n')+P.map((i,k)=>(k+1)+'. '+i.n+(i.a?' – barcode '+i.a:'')).join('\n')+'\n';q.dispatchEvent(new Event('input'))}try{history.back()}catch(_){close()};setTimeout(()=>{const q=$('#gnq');q&&q.focus()},300);toast(P.length+' item(s) in the question – type more or send')};
- sh.querySelector('#gse').onclick=()=>{const P=pick();if(!P.length)return toast('No item');const head=['S.No','Item','Code','Group'].concat(F.stock?['Stock','Unit']:[]).concat(F.rate?['Rate']:[]);
-  gExport({title:ttl()||'Items',head,rows:P.map((i,k)=>[String(k+1),i.n,i.a||'',i.g||''].concat(F.stock?[i.s!=null?f2(i.s):'',i.u||'']:[]).concat(F.rate?[i.r!=null?f2(i.r):'']:[]))})};
+ sh.querySelector('#gse').onclick=()=>{const P=pick();if(!P.length)return toast('No item');const head=['S.No','Item','Code','Brand','Size'].concat(F.stock?['Stock','Unit']:[]).concat(F.rate?['Rate']:[]);
+  gExport({title:ttl()||'Items',head,rows:P.map((i,k)=>[String(k+1),i.n,i.a||'',i._br||'',i._sz||''].concat(F.stock?[i.s!=null?f2(i.s):'',i.u||'']:[]).concat(F.rate?[i.r!=null?f2(i.r):'']:[]))})};
  draw();setTimeout(()=>sh.querySelector('#gsq').focus(),100)}
 /* 📤 share a Genie answer straight to WhatsApp (with the question above it) */
 function gnShare(i){const m=GN[i];if(!m)return;let q='';for(let k=i-1;k>=0;k--)if(GN[k].role=='user'){q=GN[k].content;break}
