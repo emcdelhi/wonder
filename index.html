@@ -44,7 +44,12 @@ function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)|
 async function run(fn,...a){let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({mrun:fn,args:a})})}catch(e){throw new Error('No internet – try again')}let j;try{j=await r.json()}catch(e){throw new Error('Shop server did not answer – try again')}if(!j.ok)throw new Error(j.err||'Error');return j.res}
 async function call(fn,...a){try{return await run(fn,TOK,...a)}catch(e){if(/log in again/i.test(e.message)){TOK='';ls('wm_tok',null);login(e.message);throw new Error('stop')}throw e}}
 function hb(show){$('#hb').style.display=show?'':'none'}
-$('#hb').onclick=async()=>{if(CT&&(Object.keys(DIRTY).length||CLR.size))await save(false);home()};
+/* back button = one screen back (Deepak 27-Nov) */
+let NAVS=[];function nav(fn){camStop();NAVS.push(fn);history.pushState({n:NAVS.length},'');fn()}
+async function leaving(){if(CT&&(Object.keys(DIRTY).length||CLR.size))await save(false)}
+window.addEventListener('popstate',async()=>{await leaving();camStop();NAVS.pop();const f=NAVS[NAVS.length-1];if(f)f();else home(true)});
+async function goHome(){await leaving();const n=NAVS.length;NAVS=[];if(n)history.go(-n);else home(true)}
+$('#hb').onclick=()=>goHome();
 /* ---------- login / PIN ---------- */
 function login(msg,pre){hb(0);$('#ttl').textContent='WONDER Mobile';$('#sub').textContent=SHOP;const u=(pre&&pre.u)||ls('wm_user')||'';
  $('#app').innerHTML=`<div class=card><h3 style="margin-top:0">Log in</h3><label class=l>User name (same as WONDER)</label><input id=lu value="${esc(u)}" autocomplete=username autocapitalize=none>
@@ -66,17 +71,18 @@ function setPin(msg,pre){hb(0);const u=(pre&&pre.u)||'',c=(pre&&pre.c)||'';
  $('#sask').onclick=async()=>{const user=$('#su').value.trim();if(!user)return $('#se').textContent='Write your user name first';try{await run('mForgot',user);$('#se').innerHTML='<span class=ok>✔ Request sent – the shop will give you a new setup code.</span>'}catch(e){$('#se').textContent=e.message}};
  $('#sback').onclick=()=>login();}
 /* ---------- home ---------- */
-async function home(){camStop();CT='';M=null;QT=null;hb(0);$('#ttl').textContent='WONDER Mobile';$('#app').innerHTML='<div class=card><p class=note>Loading…</p></div>';
+async function home(keep){camStop();if(!keep&&NAVS.length){NAVS=[]}CT='';M=null;QT=null;hb(0);$('#ttl').textContent='WONDER Mobile';$('#app').innerHTML='<div class=card><p class=note>Loading…</p></div>';
  try{ME=await call('mHome')}catch(e){if(e.message!='stop')$('#app').innerHTML='<div class=card><b class=err>'+esc(e.message)+'</b><div style="height:10px"></div><button class="btn ghost" onclick="home()">Try again</button></div>';return}
  $('#sub').textContent='Hello '+ME.name+' · '+SHOP;const F=ME.flags||{},open=ME.counts.filter(c=>c.status=='open').length,sent=(ls('wm_q_'+U(ME.name))||[]);
  $('#app').innerHTML=`<div class=tiles>${F.count?`<div class=tile id=tc><div class=i>📦</div>Stock count<div class=n>${open?open+' to count':'nothing to count'}</div></div>`:''}
+  ${F.count?`<div class=tile id=tl><div class=i>📋</div>My scan lists<div class=n>${(ls('wm_lists_'+U(ME.name))||[]).length} on this phone</div></div>`:''}
   ${F.quote?`<div class=tile id=tq><div class=i>📝</div>New quotation<div class=n>${sent.length?sent.length+' sent':'send to the shop'}</div></div>`:''}
   <div class=tile id=ti><div class=i>🔍</div>Items<div class=n>${F.rate||F.stock?'rates'+(F.stock?' & stock':''):'name & code'}</div></div>
   <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div></div>
   ${F.quote&&sent.length?`<div class=card style="margin-top:12px"><b>Quotations sent from this phone</b>${sent.slice(-10).reverse().map(q=>`<div class=it><div class=nm><b>${esc(q.party||q.phone)}</b><span>${esc(q.id)} · ${esc(q.at)} · ${q.n} items${q.t?' · ₹'+f2(q.t):''}</span></div></div>`).join('')}</div>`:''}
   ${ME.mc?`<div class=card style="margin-top:12px;background:#fff7e6;border:1px solid #e0a84a"><b>🔑 Your PIN is still 1234</b><p class=note style="margin:6px 0">Everybody knows 1234. Make your own PIN – takes 10 seconds.</p><button class="btn" id=mcp>Make my PIN</button></div>`:''}
   ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
- $('#tc')&&($('#tc').onclick=counts);$('#tq')&&($('#tq').onclick=()=>quote());$('#ti').onclick=items;$('#tp').onclick=pinMenu;$('#mcp')&&($('#mcp').onclick=()=>{pinMenu();$('#o1').value='1234';$('#o2').focus()})}
+ $('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
 async function loadItems(){if(ITEMS)return ITEMS;$('#app').innerHTML='<div class=card><p class=note>Loading items…</p></div>';ITEMS=await call('mItems');return ITEMS}
 function pinMenu(){hb(1);$('#ttl').textContent='Change PIN';$('#app').innerHTML=`<div class=card><label class=l>Old PIN</label><input id=o1 type=password inputmode=numeric maxlength=6><label class=l>New PIN</label><input id=o2 type=password inputmode=numeric maxlength=6><label class=l>New PIN again</label><input id=o3 type=password inputmode=numeric maxlength=6>
  <div style="height:12px"></div><button class="btn w" id=ogo>Change PIN</button><div class=err id=oe></div></div><div class=card><button class="btn ghost w" id=lo>Log out from this phone</button></div>`;
@@ -118,9 +124,9 @@ async function quote(){hb(1);$('#ttl').textContent='New quotation';try{await loa
 /* ---------- stock count ---------- */
 const ST={open:['To count','#0f766e','#e3f3f1'],submitted:['Submitted ✓','#555','#eee']};
 async function counts(){hb(1);$('#ttl').textContent='📦 Stock count';const L=(ME.counts||[]).sort((a,b)=>(a.status!='open')-(b.status!='open')||String(b.no).localeCompare(String(a.no),undefined,{numeric:true}));
- $('#app').innerHTML=`<div class=card><h3 style="margin:0 0 6px">What to count</h3>${L.map(c=>{const st=ST[c.status]||ST.open;return`<div class=it data-c="${c.tok}" style="cursor:pointer"><div class=nm><b>Count No. ${esc(c.no)} · ${esc(c.mc)}</b><span>${esc([dmy(c.date),c.note,c.n?c.n+' items':'any item',c.mine?'for you':'for all staff'].filter(Boolean).join(' · '))}</span></div><span class=pill style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>`}).join('')||'<p class=note>Nothing to count right now. 🙂</p>'}
+ $('#app').innerHTML=`<div class=card><h3 style="margin:0 0 6px">What to count</h3>${L.map(c=>{const st=ST[c.status]||ST.open;return`<div class=it data-c="${c.tok}" style="cursor:pointer"><div class=nm><b>Count No. ${esc(c.no)} · ${esc(c.mc)}</b><span>${esc([dmy(c.date),c.note,c.n?c.n+' items':'any item',c.mine?'for you':'for all staff'].filter(Boolean).join(' · '))}</span></div><span class=pill style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>`}).join('')||'<p class=note>Nothing to count right now. 🙂<br>The shop gives counts from WONDER (Phone Stock Count › New Count). For your own counting use <b>📋 My scan lists</b>.</p>'}
   <div style="height:8px"></div><button class="btn ghost w" id=rf>↻ Refresh</button></div>`;
- document.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>openC(x.dataset.c));$('#rf').onclick=async()=>{await home();counts()}}
+ document.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>nav(()=>openC(x.dataset.c)));$('#rf').onclick=async()=>{ME=await call('mHome');counts()}}
 async function openC(tok){$('#app').innerHTML='<div class=card><p class=note>Opening…</p></div>';
  try{const r=await call('mCntOpen',tok);CT=tok;M={status:r.meta.status,meta:r.meta,list:r.list};IT=r.items||[];Q={};DIRTY={};CLR=new Set();RECENT=[];Object.keys(r.q||{}).forEach(id=>Q[id]=r.q[id].c);
   const s=ls('wc_'+tok)||{};Object.keys(s).forEach(id=>{if(IT.some(i=>i.id==id)){DIRTY[id]=s[id];Q[id]=s[id]}});
@@ -180,11 +186,44 @@ async function camStart(onCode){camStop();const my=++LC.run,v=$('#lcv');if(!v)re
  catch(e){msg('Camera not available ('+(e.name||e.message)+') – allow camera for this app, or type the code','bad')}}
 function beep(ok){try{const c=beep.c||(beep.c=new (window.AudioContext||window.webkitAudioContext)()),o=c.createOscillator(),g=c.createGain();o.frequency.value=ok?1250:300;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(ok?.09:.3))}catch(_){}try{navigator.vibrate&&navigator.vibrate(ok?50:[80,60,80])}catch(_){}}
 let RECENT=[];
-document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if($('#lcv')&&LC.on&&CT)camStart(scanHit)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if($('#lcv')&&LC.on)camStart(CT?scanHit:listHit)});
 function scanHit(code,msg){const c=U(code),it=IT.find(i=>U(i.a)==c)||IT.find(i=>U(i.n)==c);
  if(!it){beep(0);return msg('❌ '+code+' – not in this count','bad')}
  const q=(+Q[it.id]||0)+1;Q[it.id]=q;DIRTY[it.id]=q;CLR.delete(String(it.id));keep();beep(1);RECENT=[it.id,...RECENT.filter(x=>x!=it.id)];msg('✔ '+it.n+'  =  '+q,'ok');
  if($('#sq').value)$('#sq').value='';TAB='done';drawList();const r=document.querySelector('.it[data-id="'+it.id+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}
+/* ---------- My scan lists (like Barcodica): new list on the phone, scan = +1, save, share, upload to the shop ---------- */
+function LK(){return 'wm_lists_'+U(ME.name)}function lGet(){return ls(LK())||[]}function lPut(L){ls(LK(),L)}
+async function lists(){hb(1);$('#ttl').textContent='📋 My scan lists';const L=lGet().sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+ $('#app').innerHTML=`<div class=card><button class="btn w" id=lnew>＋ New list</button></div><div class=card>${L.map(x=>{const q=x.lines.reduce((s,l)=>s+(+l.q||0),0);return`<div class=it data-l="${x.id}" style="cursor:pointer"><div class=nm><b>${esc(x.name)}</b><span>${x.lines.length} items · qty ${f2(q)} · ${esc(x.at)}</span></div>${x.up?'<span class=pill style="color:#0f766e;background:#e3f3f1">Sent ✓</span>':''}</div>`}).join('')||'<p class=note>No list yet. Tap <b>New list</b>, then scan items – every scan adds 1.</p>'}</div>`;
+ $('#lnew').onclick=()=>{const d=new Date(),nm=prompt('Name of the list (e.g. Rack 3, Godown shelf A)',d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}));if(nm==null)return;
+  const x={id:'L'+Date.now().toString(36),name:nm.trim()||'List',at:d.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}),lines:[]};const A=lGet();A.push(x);lPut(A);nav(()=>listOpen(x.id))};
+ document.querySelectorAll('[data-l]').forEach(r=>r.onclick=()=>nav(()=>listOpen(r.dataset.l)))}
+let LST=null,LREC=[];
+async function listOpen(id){hb(1);try{await loadItems()}catch(e){if(e.message!='stop')toast(e.message);return}const A=lGet();LST=A.find(x=>x.id==id);if(!LST)return lists();LREC=[];
+ $('#ttl').textContent='📋 '+LST.name;
+ $('#app').innerHTML=`${camPanel()}<div class=card><div class=row><input id=lq placeholder="Add by name / code" autocomplete=off></div><div id=lr></div><div id=ll></div></div>
+  <div class=bar><div class=st id=lst2></div><button class="btn ghost" id=lsh>Share</button><button class="btn" id=lup>Send to shop</button></div>
+  <div class=card><button class="btn ghost w" id=ldel style="color:#b42318">Delete this list</button></div>`;
+ $('#lct').onclick=()=>{LC.on=!LC.on;ls('wm_camon',LC.on);listOpen(id)};if(LC.on)camStart(listHit);
+ $('#lq').oninput=()=>{const ws=U($('#lq').value).split(/\s+/).filter(Boolean),R=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,20):[];$('#lr').innerHTML=R.map(i=>`<div class=it data-ad=${i.id} style="cursor:pointer"><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u].filter(Boolean).join(' · '))}</span></div><span class=ok>＋</span></div>`).join('')};
+ $('#lr').onclick=e=>{const r=e.target.closest('[data-ad]');if(!r)return;const it=ITEMS.find(i=>i.id==r.dataset.ad);lAdd(it.a||it.n,it,1);$('#lq').value='';$('#lr').innerHTML=''};
+ $('#ll').addEventListener('input',e=>{const x=e.target.closest('[data-lq]');if(!x)return;const l=LST.lines[+x.dataset.lq];l.q=x.value.trim()===''?0:+x.value||0;lSave(1)});
+ $('#ll').onclick=e=>{const b=e.target.closest('[data-lx]');if(b&&confirm('Remove this line?')){LST.lines.splice(+b.dataset.lx,1);lSave();lDraw()}};
+ $('#lsh').onclick=lShare;$('#lup').onclick=lUpload;$('#ldel').onclick=()=>{if(!confirm('Delete list "'+LST.name+'" from this phone?'))return;lPut(lGet().filter(x=>x.id!=LST.id));history.back()};lDraw()}
+function lSave(quiet){const A=lGet(),i=A.findIndex(x=>x.id==LST.id);LST.up=false;if(i>=0)A[i]=LST;lPut(A);if(!quiet)lStat()}
+function lStat(){const q=LST.lines.reduce((s,l)=>s+(+l.q||0),0);$('#lst2')&&($('#lst2').textContent=LST.lines.length+' items · qty '+f2(q)+(LST.up?' · sent ✓':' · saved on phone'))}
+function lDraw(){const k=x=>{const i=LREC.indexOf(x.c);return i<0?1e9:i};const L=LST.lines.map((l,i)=>({...l,i})).sort((a,b)=>k(a)-k(b));
+ $('#ll').innerHTML=L.map(l=>`<div class=it data-lc="${esc(l.c)}"><div class=nm><b>${esc(l.n||l.c)}</b><span>${esc(l.c)}${l.id?'':' · ❓ not in WONDER'}</span></div><input inputmode=decimal data-lq=${l.i} value="${l.q}"><button class=x data-lx=${l.i}>✕</button></div>`).join('')||'<p class=note>Scan an item – every scan adds 1.</p>';lStat()}
+function lAdd(code,it,add){const c=String(code).trim();let l=LST.lines.find(x=>U(x.c)==U(c)||(it&&x.id==it.id));if(!l){l={c,id:it?it.id:0,n:it?it.n:'',q:0};LST.lines.push(l)}l.q=Math.round(((+l.q||0)+add)*1000)/1000;LREC=[l.c,...LREC.filter(x=>x!=l.c)];lSave(1);lDraw();
+ const r=document.querySelector('[data-lc="'+CSS.escape(l.c)+'"]');if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}return l}
+function listHit(code,msg){const it=find(code),l=lAdd(it?(it.a||it.n):code,it,1);beep(!!it);msg((it?'✔ ':'❓ ')+(it?it.n:code+' (not in WONDER)')+'  =  '+l.q,it?'ok':'bad')}
+function lText(){return LST.name+' – '+ME.name+' ('+SHOP+')\n'+LST.lines.map(l=>(l.n||l.c)+(l.n?' ['+l.c+']':'')+' : '+l.q).join('\n')+'\nTotal items '+LST.lines.length}
+async function lShare(){if(!LST.lines.length)return toast('List is empty');const t=lText(),csv='Code,Item,Qty\n'+LST.lines.map(l=>[l.c,l.n||'',l.q].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+ try{const f=new File([csv],LST.name.replace(/[^A-Za-z0-9 _-]/g,'_')+'.csv',{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[f]}))return await navigator.share({files:[f],text:t,title:LST.name});if(navigator.share)return await navigator.share({text:t,title:LST.name})}catch(e){if(e.name=='AbortError')return}
+ try{await navigator.clipboard.writeText(t);toast('Copied – paste in WhatsApp')}catch(_){alert(t)}}
+async function lUpload(){if(!LST.lines.length)return toast('List is empty');if(!confirm('Send "'+LST.name+'" ('+LST.lines.length+' items) to the shop?\nThe shop checks it in WONDER.'))return;$('#lup').disabled=true;
+ try{await leaving();const r=await call('mUpList',{id:LST.id,name:LST.name,lines:LST.lines.map(l=>({c:l.c,id:l.id||0,q:+l.q||0}))});LST.up=true;const A=lGet(),i=A.findIndex(x=>x.id==LST.id);if(i>=0)A[i]=LST;lPut(A);lStat();toast('✔ Sent to the shop',2500)}
+ catch(e){if(e.message!='stop')toast(e.message,3000)}finally{$('#lup')&&($('#lup').disabled=false)}}
 /* ---------- start: setup link (?app=1&u=NAME&c=CODE) or saved login ---------- */
 async function joinCode(j){setPin('',{c:j});const su=$('#su');su.placeholder='checking the link…';try{const n=await run('mCodeUser',j);su.value=n;su.readOnly=true;$('#sp1').focus()}catch(e){login(e.message)}}
 function start(p){p=p||{};TOK=ls('wm_tok')||'';if(TOK)return home();const j=JOIN||p.j;if(j)return joinCode(j);if(p.k&&p.u)return setPin('',{u:p.u,c:p.k});login()}
