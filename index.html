@@ -373,17 +373,23 @@ function lGuess(l){if(l.id)return {};if(l.nw)return {...l.nw,ok:1};const mk=(p,a
  if(l.ai&&l.ai.name){const p=parseNm([l.ai.name,l.ai.code||'',l.nc?'':l.c].join(' '));if(!p.fin&&l.ai.finish)p.fin=U(l.ai.finish);if(!p.br&&l.ai.brand)p.br=U(l.ai.brand);if(!p.sz&&l.ai.size)p.sz=szStd(l.ai.size);if(p.num&&p.fin)return mk(p,1);return {n:l.ai.name,a:l.nc?'':U(l.c),u:'Metre',ai:1}}
  return l.nc?{}:guessItem(l.c)}
 const canNew=()=>{const F=(ME&&ME.flags)||{};return !!(F.newitem||F.gteach)};
+/* 28-Nov 16:20: group drop-down (all groups of the item list + standard finish groups) and preview of the next automatic EMCAT barcode */
+function grpList(){const S=new Set(['General']);(ITEMS||[]).concat(OFFI||[]).forEach(i=>{const x=String(i.g||'').replace(/^⏻\s*/,'').trim();if(x)S.add(x)});Object.values(GRP).forEach(x=>S.add(x));return [...S].sort((a,b)=>a=='General'?-1:b=='General'?1:a.localeCompare(b,undefined,{numeric:true}))}
+function nxCode(){let mx=0;(ITEMS||[]).concat(OFFI||[]).forEach(i=>[i.a].concat(i.x||[]).forEach(c=>{const m=/^EMCAT(\d+)$/i.exec(String(c||'').trim());if(m)mx=Math.max(mx,+m[1])}));return 'EMCAT'+String(mx+1).padStart(4,'0')}
 function newItem(i){const l=LST.lines[i];if(!l)return;const g=lGuess(l);const sh=document.createElement('div');sh.className='sheet';
  sh.innerHTML=`<div class=in><b style="font-size:16px">✔ Add new item to WONDER</b><div class=note style="margin:2px 0 8px">Check and correct, then Approve. WONDER makes the item in about 2 minutes.</div>
   <label class=l>Item name (No. FINISH BRAND SIZE)</label><input id=nwn value="${esc(g.n||l.nm||'')}" autocomplete=off>
-  <div class=note style="margin:6px 0 0;color:#0f766e"><b>Barcode: automatic</b> – WONDER gives the next EMCAT code (EMCAT0001, 0002 …). Print the label from WONDER.</div><label class=l>Scanned code (kept as 2nd code)</label><input id=nwa value="${esc(g.a!=null?g.a:(l.nc?'':U(l.c)))}" autocomplete=off placeholder="Leave empty if no barcode">
-  <label class=l>Group</label><input id=nwg value="${esc(g.g||'')}" autocomplete=off placeholder="e.g. SHG 22*0.8 or General">
-  <label class=l>Unit</label><select id=nwu>${['Metre','Roll','Pcs','Box','Kg','Nos'].map(u=>`<option ${u==(g.u||'Metre')?'selected':''}>${u}</option>`).join('')}</select>
+  <label class=l>Barcode <span style="color:#0f766e">(empty = automatic ${nxCode()})</span></label><input id=nwa value="${esc(g.a!=null?g.a:(l.nc?'':U(l.c)))}" autocomplete=off autocapitalize=characters placeholder="Auto: ${nxCode()}">
+  <label class=l>Group</label><div class=row style="gap:8px"><select id=nwgs style="flex:1;min-width:0;padding:10px;font-size:15px;border:1px solid #cfdcd9;border-radius:10px;background:#fff">${grpList().map(x=>`<option ${U(x)==U(g.g||'General')?'selected':''}>${esc(x)}</option>`).join('')}</select><button type=button class="btn ghost" id=nwgn style="white-space:nowrap">＋ New</button></div><input id=nwg style="display:none;margin-top:6px" autocomplete=off placeholder="New group name, e.g. SHG 22*0.8">
+  <label class=l>Unit</label><select id=nwu style="width:100%;padding:10px;font-size:15px;border:1px solid #cfdcd9;border-radius:10px;background:#fff">${['Metre','Roll','Pcs','Box','Kg','Nos'].map(u=>`<option ${u==(g.u||'Metre')?'selected':''}>${u}</option>`).join('')}</select>
   ${l.img?`<img src="${l.img}" style="width:100%;max-height:160px;object-fit:contain;border-radius:10px;margin-top:8px">`:''}
   <div style="height:10px"></div><button class="btn w" id=nwok>✔ Approve – add to WONDER</button><div style="height:6px"></div><button class="btn ghost w" id=nwx>Cancel</button></div>`;document.body.appendChild(sh);
- const nm=sh.querySelector('#nwn');nm.oninput=()=>{const p=parseNm(nm.value),gg=sh.querySelector('#nwg');if(p.fin&&!gg.dataset.t)gg.value=grpOf(p.fin,p.sz)};sh.querySelector('#nwg').oninput=e=>{e.target.dataset.t=1};
+ const nm=sh.querySelector('#nwn'),gs=sh.querySelector('#nwgs'),gi=sh.querySelector('#nwg');
+ const setG=v=>{if(!v)return;const o=[...gs.options].find(x=>U(x.value)==U(v));if(o){gs.value=o.value;gi.style.display='none';gi.value=''}else{gi.style.display='';gi.value=v}};if(g.g)setG(g.g);
+ sh.querySelector('#nwgn').onclick=()=>{gi.style.display='';gi.dataset.t=1;gi.focus()};gs.onchange=()=>{gs.dataset.t=1;gi.style.display='none';gi.value=''};
+ nm.oninput=()=>{const p=parseNm(nm.value);if(p.fin&&!gs.dataset.t&&!gi.dataset.t)setG(grpOf(p.fin,p.sz))};gi.oninput=()=>{gi.dataset.t=1};
  sh.querySelector('#nwx').onclick=()=>sh.remove();
- sh.querySelector('#nwok').onclick=async e=>{const n=nm.value.trim().replace(/\s+/g,' '),a=U(sh.querySelector('#nwa').value).trim(),gr=sh.querySelector('#nwg').value.trim()||'General',u=sh.querySelector('#nwu').value;if(!n)return toast('Write the item name');
+ sh.querySelector('#nwok').onclick=async e=>{const n=nm.value.trim().replace(/\s+/g,' '),a=U(sh.querySelector('#nwa').value).trim(),gr=(gi.style.display!='none'&&gi.value.trim())||gs.value||'General',u=sh.querySelector('#nwu').value;if(!n)return toast('Write the item name');
   if(matchItem(ITEMS||IT||[],a||n))return toast('This code / name is already in WONDER');e.target.disabled=true;
   try{await call('mUpList',{id:'N'+Date.now().toString(36),name:'＋NEW',lines:[{c:(a||n).slice(0,60),id:0,q:0,ng:{n,a,g:gr,u,h:'39204900'}}]});l.nw={n,a,g:gr,u,h:'39204900'};lSave();sh.remove();lDraw();beep('ok');toast('✔ Approved – WONDER adds "'+n+'" in about 2 min',3500)}catch(x){e.target.disabled=false;if(x.message!='stop')toast(x.message,3500)}}}
 function phView(i){const l=LST.lines[i];if(!l)return;if(!l.img)return phCap(i);
@@ -402,7 +408,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 16:15';
+const APP_V='28-Nov-2026 16:25';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
