@@ -154,12 +154,12 @@ async function home(keep){document.body.classList.remove('gnon');gvStop();const 
   ${F.gstock?`<div class=tile id=tsi><div class=i>📥</div>Stock aaya<div class=n>photo of bill / parchi</div></div>`:''}
   <div class="tile gt" id=tg><span class="gorb br"></span>Ask Genie<div class=n>AI assistant</div></div>
   <div class=tile id=ti><div class=i>🔍</div>Items<div class=n>${F.rate||F.stock?'rates'+(F.stock?' & stock':''):'name & code'}</div></div>
-  <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div></div>
+  <div class=tile id=tp><div class=i>🔑</div>Change PIN<div class=n>or log out</div></div>${ME.adm?`<div class=tile id=tau><div class=i>👥</div>Users &amp; PIN<div class=n>rights · PIN · new user</div></div>`:''}</div>
   ${F.quote&&sent.length?`<div class=card style="margin-top:12px"><b>Quotations sent from this phone</b>${sent.slice(-10).reverse().map(q=>`<div class=it><div class=nm><b>${esc(q.party||q.phone)}</b><span>${esc(q.id)} · ${esc(q.at)} · ${q.n} items${q.t?' · ₹'+f2(q.t):''}</span></div></div>`).join('')}</div>`:''}
   ${ME.mc?`<div class=card style="margin-top:12px;background:#fff7e6;border:1px solid #e0a84a"><b>🔑 Your PIN is still 1234</b><p class=note style="margin:6px 0">Everybody knows 1234. Make your own PIN – takes 10 seconds.</p><button class="btn" id=mcp>Make my PIN</button></div>`:''}
   <div class=card style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class=note style="flex:1">Version ${APP_V}</span><button class="btn ghost" id=hup>⟳ Update</button><button class="btn ghost" id=hset>⚙</button></div>
   ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
- $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tg').onclick=()=>nav(genie);$('#tsi')&&($('#tsi').onclick=()=>nav(stockIn));$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
+ $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tg').onclick=()=>nav(genie);$('#tsi')&&($('#tsi').onclick=()=>nav(stockIn));$('#tp').onclick=()=>nav(pinMenu);$('#tau')&&($('#tau').onclick=()=>nav(admUsers));$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
 function IK(){return 'wm_items_'+U(ME&&ME.name||'')}let ITF=null,OFFI=[];
 /* deactivated items (28-Nov): WONDER sends them with group '⏻ …' – kept apart in OFFI (hidden from lists, scan still finds them) */
 function itSplit(r){OFFI=[];const A=[];(r||[]).forEach(i=>{const g=String(i.g||'');if(i.o||g.charAt(0)=='⏻'){i.o=1;i.g=g.replace(/^⏻\s*/,'');OFFI.push(i)}else A.push(i)});return A}
@@ -170,6 +170,49 @@ function pinMenu(){hb(1);$('#ttl').textContent='Change PIN';$('#app').innerHTML=
  <div style="height:12px"></div><button class="btn w" id=ogo>Change PIN</button><div class=err id=oe></div></div><div class=card><button class="btn ghost w" id=lo>Log out from this phone</button></div>`;
  $('#ogo').onclick=async()=>{const a=$('#o1').value.trim(),b=$('#o2').value.trim();if(b!==$('#o3').value.trim())return $('#oe').textContent='The two new PINs are not the same';try{await call('mChangePin',a,b);toast('✔ PIN changed');home()}catch(e){if(e.message!='stop')$('#oe').textContent=e.message}};
  $('#lo').onclick=async()=>{try{await run('mLogout',TOK)}catch(_){}TOK='';ls('wm_tok',null);ITEMS=null;ITF=null;login('Logged out')}}
+/* ---------- 👥 Users & PIN (admin only, 28-Nov V29): same as WONDER › WONDER Mobile users – on/off, rights, PIN = 1234, give app, new user.
+   Changes work at once on the phones; WONDER PC applies them at its next read (Audit Trail). ---------- */
+const MOBF=[['count','Stock count'],['quote','Quotation'],['stock','Show stock'],['rate','Show rate / MRP'],['value','Show stock value'],['gteach','Teach Genie'],['gstock','Stock In (photo)'],['newitem','Add new items (phone)']];
+let ADM=null;
+async function admUsers(){hb(1);$('#ttl').textContent='👥 Users & PIN';$('#app').innerHTML='<div class=card><p class=note>Loading users…</p></div>';
+ try{ADM=await call('mAdmUsers')}catch(e){if(e.message!='stop')$('#app').innerHTML='<div class=card><b class=err>'+esc(e.message)+'</b></div>';return}
+ const L=ADM.users.slice().sort((a,b)=>(b.adm-a.adm)||(b.on-a.on)||String(a.u).localeCompare(String(b.u))),fg=L.filter(x=>x.forgot);
+ $('#app').innerHTML=`${fg.length?`<div class=card style="background:#fdecea;border:1px solid #f3b4ae"><b>🔑 Forgot PIN: ${fg.map(x=>esc(x.u)).join(', ')}</b><p class=note style="margin:4px 0 0">Open the user → <b>PIN = 1234</b>.</p></div>`:''}
+  <div class=card><div class=row><input id=aq placeholder="Search user" autocomplete=off><button class="btn" id=anew>＋ New user</button></div><div id=al></div></div>
+  <p class=note style="margin:8px 4px">Same list as WONDER › WONDER Mobile users. A change here works on the phone at once and WONDER PC takes it in its next read (≈2 min) – written in Audit Trail.</p>`;
+ const st=x=>!x.on?'Off':x.forgot?'<b class=err>Forgot PIN</b>':x.pin?(x.mc?'PIN 1234 (not changed yet)':'✔ Own PIN set'):'No PIN yet';
+ const draw=()=>{const q=U($('#aq').value);$('#al').innerHTML=L.filter(x=>!q||U(x.u+' '+x.role).includes(q)).map(x=>`<div class=it data-u="${esc(x.u)}" style="cursor:pointer"><div class=nm><b>${esc(x.u)}${x.adm?' · Admin':''}</b><span>${esc(x.role||'')}${x.role?' · ':''}${st(x)}${x.on&&x.last?' · last '+esc(dmy(String(x.last).slice(0,10))):''}${x.pcOff?' · PC login off':''}</span></div><span class=pill style="color:${x.on?'#0f766e':'#888'};background:${x.on?'#e3f3f1':'#eee'}">${x.on?'On':'Off'}</span></div>`).join('')||'<p class=note>No user</p>'};
+ $('#aq').oninput=draw;$('#al').onclick=e=>{const r=e.target.closest('[data-u]');if(r)nav(()=>admOne(r.dataset.u))};$('#anew').onclick=()=>nav(admNew);draw()}
+function admFlagsHtml(f,lock){return MOBF.map(([k,l])=>`<label style="display:flex;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid #eef2f1;font-size:15px"><input type=checkbox data-f=${k} ${lock||(f||{})[k]?'checked':''} ${lock?'disabled':''} style="width:22px;height:22px"> ${l}</label>`).join('')}
+function admRead(){const f={};document.querySelectorAll('[data-f]').forEach(c=>{if(c.checked)f[c.dataset.f]=1});return f}
+function admOne(u){const x=(ADM&&ADM.users||[]).find(v=>v.u==u);if(!x)return admUsers();hb(1);$('#ttl').textContent='👤 '+x.u;const me=U(x.u)==U(ME.name);
+ $('#app').innerHTML=`<div class=card><b style="font-size:17px">${esc(x.u)}</b><div class=note>${esc(x.role||'')}${x.adm?' · Admin – all rights':''}${x.pcOff?' · PC login off (set password in WONDER › Setup › Users)':''}</div>
+   <label style="display:flex;gap:10px;align-items:center;padding:12px 2px;font-size:16px;font-weight:600"><input type=checkbox id=aon ${x.on?'checked':''} ${x.adm||me?'disabled':''} style="width:24px;height:24px"> WONDER Mobile On</label>
+   <div id=afl style="${x.on?'':'opacity:.45'}">${admFlagsHtml(x.flags,x.adm)}</div><div style="height:12px"></div>
+   <button class="btn w" id=asv>Save</button><div class=err id=ae></div></div>
+  ${x.on?`<div class=card><div class=row style="gap:8px"><button class="btn ghost" id=ap1>🔑 PIN = 1234</button><button class="btn ghost" id=agv>📲 Give app</button></div><p class=note style="margin:6px 0 0">PIN = 1234 logs the user out of every phone; they log in again with 1234 and make their own PIN.</p></div>`:''}`;
+ $('#aon').onchange=()=>{$('#afl').style.opacity=$('#aon').checked?'':'.45'};
+ const go=async(o,msg)=>{$('#ae').textContent='';document.querySelectorAll('#app button').forEach(b=>b.disabled=true);try{const r=await call('mAdmSet',{user:x.u,...o});toast(msg||'✔ Saved',2500);
+   if(r&&r.fresh){ADM=await call('mAdmUsers');return admGive(x.u,true)}history.back()}catch(e){document.querySelectorAll('#app button').forEach(b=>b.disabled=false);if(e.message!='stop')$('#ae').textContent=e.message}};
+ $('#asv').onclick=()=>{const on=$('#aon').checked;if(!on&&x.on&&!confirm('Switch WONDER Mobile OFF for '+x.u+'? They are logged out at once.'))return;go(on?{on:true,flags:admRead()}:{on:false},on?'✔ Saved':'✔ '+x.u+' is Off')};
+ $('#ap1')&&($('#ap1').onclick=()=>{if(confirm('Set PIN of '+x.u+' back to 1234? Their phones are logged out.'))go({on:true,flags:x.adm?{}:x.flags,reset:true},'✔ PIN of '+x.u+' is 1234')});
+ $('#agv')&&($('#agv').onclick=()=>admGive(x.u))}
+function admMsg(u,p1234){return 'WONDER Mobile – '+(SHOP||'shop')+'\n'+location.origin+location.pathname+'\nUser: '+u+'\nPIN: '+(p1234?'1234 (make your own PIN after login)':'your own PIN')+'\nOpen in Chrome → ⋮ → Install app.'}
+function admGive(u,fresh){const x=(ADM&&ADM.users||[]).find(v=>v.u==u)||{u:u,mc:1},msg=admMsg(u,fresh||x.mc||!x.pin);hb(1);$('#ttl').textContent='📲 Give app';
+ $('#app').innerHTML=`<div class=card>${fresh?'<b class=ok>✔ '+esc(u)+' can log in now with PIN 1234</b><div style="height:8px"></div>':''}<pre style="white-space:pre-wrap;background:#f6f8f7;padding:10px;border-radius:8px;font-size:14px;margin:0">${esc(msg)}</pre>
+  <label class=l>Staff WhatsApp number (10 digits)</label><input id=gph inputmode=numeric maxlength=14 placeholder="10-digit mobile"><div style="height:10px"></div>
+  <div class=row style="gap:8px;flex-wrap:wrap"><button class="btn" id=gwa>Send on WhatsApp</button><button class="btn ghost" id=gsh>Share…</button><button class="btn ghost" id=gcp>Copy</button></div></div>
+  <div class=card><button class="btn ghost w" id=gbk>← Users</button></div>`;
+ $('#gwa').onclick=()=>{const p=String($('#gph').value||'').replace(/\D/g,'').slice(-10);if(p.length!=10)return toast('Write the 10-digit WhatsApp number');location.href='https://wa.me/91'+p+'?text='+encodeURIComponent(msg)};
+ $('#gsh').onclick=async()=>{try{await navigator.share({text:msg})}catch(_){}};$('#gcp').onclick=()=>{try{navigator.clipboard.writeText(msg);toast('Copied')}catch(_){}};$('#gbk').onclick=()=>history.back()}
+function admNew(){hb(1);$('#ttl').textContent='＋ New user';const R=(ADM&&ADM.roles||[]).filter(r=>r!='Admin');
+ $('#app').innerHTML=`<div class=card><label class=l>User name (letters / numbers, 2–20)</label><input id=nu autocapitalize=characters autocomplete=off placeholder="e.g. RAJU">
+  <label class=l>Role in WONDER (PC)</label><select id=nr style="width:100%;padding:10px;font-size:15px">${(R.length?R:['Custom']).map(r=>`<option ${r=='Sales'?'selected':''}>${esc(r)}</option>`).join('')}</select>
+  <p class=note style="margin:6px 0">The user is made in WONDER too. PC login stays <b>off</b> until you set a password on the PC (Setup › Users). Phone PIN = <b>1234</b>.</p>
+  <b style="display:block;margin-top:8px">Phone rights</b>${admFlagsHtml({count:1,quote:1,rate:1})}<div style="height:12px"></div>
+  <button class="btn w" id=nsv>Make user</button><div class=err id=ne></div></div>`;
+ $('#nsv').onclick=async()=>{const u=$('#nu').value.trim();if(!/^[A-Za-z0-9_.-]{2,20}$/.test(u))return $('#ne').textContent='User name: letters / numbers only (2-20)';
+  $('#nsv').disabled=true;$('#ne').textContent='';try{await call('mAdmNew',{user:u,role:$('#nr').value,flags:admRead()});ADM=await call('mAdmUsers');toast('✔ '+u+' made',2500);admGive(u,true)}catch(e){$('#nsv').disabled=false;if(e.message!='stop')$('#ne').textContent=e.message}}}
 /* ---------- items lookup ---------- */
 async function items(){hb(1);$('#ttl').textContent='Items';try{await loadItems()}catch(e){if(e.message!='stop')toast(e.message);return}const F=ME.flags||{};
  $('#app').innerHTML=`<div class=card><div class=row><input id=iq placeholder="Search name / code" autocomplete=off><button class="btn ghost" id=isc>📷</button></div><div id=il></div></div>`;
@@ -359,7 +402,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 14:53';
+const APP_V='28-Nov-2026 15:40';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
