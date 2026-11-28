@@ -160,9 +160,12 @@ async function home(keep){document.body.classList.remove('gnon');gvStop();const 
   <div class=card style="margin-top:12px;display:flex;gap:8px;align-items:center"><span class=note style="flex:1">Version ${APP_V}</span><button class="btn ghost" id=hup>⟳ Update</button><button class="btn ghost" id=hset>⚙</button></div>
   ${!F.count&&!F.quote?'<p class=note style="margin-top:12px">The shop has not given you stock count or quotation yet.</p>':''}`;
  $('#hup').onclick=()=>upCheck(true);$('#hset').onclick=()=>nav(scanSettings);$('#tc')&&($('#tc').onclick=()=>nav(counts));$('#tl')&&($('#tl').onclick=()=>nav(lists));$('#tq')&&($('#tq').onclick=()=>nav(()=>quote()));$('#ti').onclick=()=>nav(items);$('#tg').onclick=()=>nav(genie);$('#tsi')&&($('#tsi').onclick=()=>nav(stockIn));$('#tp').onclick=()=>nav(pinMenu);$('#mcp')&&($('#mcp').onclick=()=>{nav(pinMenu);$('#o1').value='1234';$('#o2').focus()})}
-function IK(){return 'wm_items_'+U(ME&&ME.name||'')}let ITF=null;
-function itemsFresh(){if(!ITF)ITF=call('mItems').then(r=>{ITEMS=r;ls(IK(),{at:Date.now(),r});return r}).catch(e=>{ITF=null;throw e});return ITF}
-async function loadItems(){if(ITEMS)return ITEMS;const c=ls(IK());if(c&&c.r&&c.r.length){ITEMS=c.r;itemsFresh().catch(()=>{});return ITEMS}$('#app').innerHTML='<div class=card><p class=note>Loading items… (only the first time)</p></div>';return await itemsFresh()}
+function IK(){return 'wm_items_'+U(ME&&ME.name||'')}let ITF=null,OFFI=[];
+/* deactivated items (28-Nov): WONDER sends them with group '⏻ …' – kept apart in OFFI (hidden from lists, scan still finds them) */
+function itSplit(r){OFFI=[];const A=[];(r||[]).forEach(i=>{const g=String(i.g||'');if(i.o||g.charAt(0)=='⏻'){i.o=1;i.g=g.replace(/^⏻\s*/,'');OFFI.push(i)}else A.push(i)});return A}
+function itCache(){try{ls(IK(),{at:Date.now(),r:(ITEMS||[]).concat(OFFI).map(i=>{const o={};Object.keys(i).forEach(k=>{if(k.charAt(0)!='_'&&k!='o')o[k]=i[k]});o.g=(i.o?'⏻ ':'')+(i.g||'');return o})})}catch(_){}}
+function itemsFresh(){if(!ITF)ITF=call('mItems').then(r=>{ls(IK(),{at:Date.now(),r});ITEMS=itSplit(r);return ITEMS}).catch(e=>{ITF=null;throw e});return ITF}
+async function loadItems(){if(ITEMS)return ITEMS;const c=ls(IK());if(c&&c.r&&c.r.length){ITEMS=itSplit(c.r);itemsFresh().catch(()=>{});return ITEMS}$('#app').innerHTML='<div class=card><p class=note>Loading items… (only the first time)</p></div>';return await itemsFresh()}
 function pinMenu(){hb(1);$('#ttl').textContent='Change PIN';$('#app').innerHTML=`<div class=card><label class=l>Old PIN</label><input id=o1 type=password inputmode=numeric maxlength=6><label class=l>New PIN</label><input id=o2 type=password inputmode=numeric maxlength=6><label class=l>New PIN again</label><input id=o3 type=password inputmode=numeric maxlength=6>
  <div style="height:12px"></div><button class="btn w" id=ogo>Change PIN</button><div class=err id=oe></div></div><div class=card><button class="btn ghost w" id=lo>Log out from this phone</button></div>`;
  $('#ogo').onclick=async()=>{const a=$('#o1').value.trim(),b=$('#o2').value.trim();if(b!==$('#o3').value.trim())return $('#oe').textContent='The two new PINs are not the same';try{await call('mChangePin',a,b);toast('✔ PIN changed');home()}catch(e){if(e.message!='stop')$('#oe').textContent=e.message}};
@@ -173,7 +176,8 @@ async function items(){hb(1);$('#ttl').textContent='Items';try{await loadItems()
  const draw=()=>{const q=U($('#iq').value),ws=q.split(/\s+/).filter(Boolean),L=ws.length?ITEMS.filter(i=>ws.every(w=>U(i.n+' '+i.a+' '+i.g).includes(w))).slice(0,60):[];
   $('#il').innerHTML=L.map(i=>`<div class=it><div class=nm><b>${esc(i.n)}</b><span>${esc([i.a,i.u,i.g].filter(Boolean).join(' · '))}</span></div><div style="text-align:right;font-size:14px">${F.rate&&i.r>0?'₹'+f2(i.r):''}${F.rate&&i.m?'<div class=note>MRP '+f2(i.m)+'</div>':''}${F.stock&&i.s!=null?'<div class=note>Stock '+f2(i.s)+'</div>':''}${i.v!=null?'<div class=note>Value ₹'+f2(i.v)+'</div>':''}</div></div>`).join('')||`<p class=note>${q?'No item found':'Type a name or code, or scan.'}</p>`};
  $('#iq').oninput=draw;$('#isc').onclick=()=>camScan(t=>{const it=find(t);$('#iq').value=it?(it.a||it.n):t;draw()});draw();$('#iq').focus()}
-function matchItem(L,code){const c=U(code);let it=L.find(i=>U(i.a)==c)||L.find(i=>U(i.n)==c)||L.find(i=>i.x&&i.x.some(x=>U(x)==c));if(it)return it;
+function matchItem(L,code){const r=matchItem0(L,code);return r||(L===ITEMS&&OFFI.length?matchItem0(OFFI,code):r)}
+function matchItem0(L,code){const c=U(code);let it=L.find(i=>U(i.a)==c)||L.find(i=>U(i.n)==c)||L.find(i=>i.x&&i.x.some(x=>U(x)==c));if(it)return it;
  const m=c.match(/^EMC-?(\d+)-?([A-Z]{3})A?$/);if(m){const z=m[1].replace(/^0+/,'')||'0';for(const n of [...new Set([m[1],z,z.padStart(2,'0'),z.padStart(3,'0')])]){const al='EMC-'+n+'-'+m[2],nm=n+'-'+m[2];it=L.find(i=>U(i.a)==al)||L.find(i=>U(i.a).startsWith(al+'-'))||L.find(i=>U(i.n)==nm)||L.find(i=>U(i.n).startsWith(nm+'-'))||L.find(i=>U(i.a).startsWith('EMC-'+n+'-')&&U(i.a).split('-').slice(2).join('-').split('/').includes(m[2]));if(it)return it}}return it}
 /* new-item proposal for a Stock code unregistered (EMC5SHGA → 05-SHG-22*0.8 · alias EMC-05-SHG · group 4-SHG-22*08(EMC)) */
 const GRP={SMT:'SMT 22*0.8',WMT:'WMT 22*0.8',FAB:'FAB 22*0.8',SHG:'SHG 22*0.8',WHG:'WHG 22*0.8',MBL:'SPK/MBL/MTL 22*0.8',SPK:'SPK/MBL/MTL 22*0.8',MTL:'SPK/MBL/MTL 22*0.8'};
@@ -327,7 +331,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 02:22';
+const APP_V='28-Nov-2026 11:25';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
@@ -481,28 +485,36 @@ function gExport(T){const sh=document.createElement('div');sh.className='sheet';
 function gnExp(i){const m=GN[i];if(!m)return;let q='';for(let k=i-1;k>=0;k--)if(GN[k].role=='user'){q=GN[k].content.split('\n')[0];break}const T=gRows(m.content);if(q&&T.title=='WONDER Genie report')T.title=q.slice(0,60);gExport(T)}
 /* 🔍 search items by name / alias / code + filters (group, finish, size) → ask Genie, or a report straight away */
 const GFIN=['SMT','WMT','FAB','SHG','WHG','SPK','MBL','MTL'];
-async function gnSearch(){let L;try{L=await loadItems()}catch(e){return toast(e.message)}if(!$('#gnw'))genie();const F=ME.flags||{};
+async function gnSearch(){let LA;try{LA=await loadItems()}catch(e){return toast(e.message)}if(!$('#gnw'))genie();const F=ME.flags||{};let L=LA;
  const toks=i=>String(i.n||'').toUpperCase().replace(/\s+/g,' ').trim().split(' ');
  const szOf=i=>{const m=String(i.n).match(/(\d+(?:\.\d+)?)\s*[*xX]\s*(\d+(?:\.\d+)?)/);if(!m)return '';let a=+m[1],b=+m[2];if(a<b)[a,b]=[b,a];return a+'*'+b};
  const finOf=i=>{const t=toks(i);const f=new Set();t.forEach(w=>w.split('/').forEach(z=>{if(GFIN.includes(z))f.add(z)}));return f};
  const NOTB=new Set(['HG','MT','PVC','TAPE','EDGE','BAND','NO.','NO','SS2']);
  const brOf=i=>{const t=toks(i);let k=t.findIndex(w=>/^\d+(\.\d+)?[*X]\d/.test(w));if(k<0)k=t.length;for(let j=k-1;j>=1;j--){const w=t[j];if(w.split('/').some(z=>GFIN.includes(z)))break;if(!NOTB.has(w)&&/^[A-Z][A-Z0-9.\-]{0,9}$/.test(w))return w}return ''};
- L.forEach(i=>{if(i._sz===undefined){i._sz=szOf(i);i._fin=finOf(i);i._br=i._fin.size?brOf(i):''}});
- const cnt=k=>{const m={};L.forEach(i=>{const v=i[k];if(v)m[v]=(m[v]||0)+1});return Object.keys(m).sort((a,b)=>m[b]-m[a]||a.localeCompare(b)).map(v=>[v,m[v]])};
+ LA.concat(OFFI).forEach(i=>{if(i._sz===undefined){i._sz=szOf(i);i._fin=finOf(i);i._br=i._fin.size?brOf(i):''}});
+ const cnt=k=>{const m={};LA.concat(OFFI).forEach(i=>{const v=i[k];if(v)m[v]=(m[v]||0)+1});return Object.keys(m).sort((a,b)=>m[b]-m[a]||a.localeCompare(b)).map(v=>[v,m[v]])};
  const SZ=cnt('_sz'),BR=cnt('_br').filter(x=>x[1]>=2);
- const st={q:'',fin:new Set(),sz:new Set(),br:new Set(),sel:new Set()};const sh=document.createElement('div');sh.className='done gsr';
+ const st={q:'',fin:new Set(),sz:new Set(),br:new Set(),sel:new Set(),show:'on'};const base=()=>{L=st.show=='on'?ITEMS:st.show=='off'?OFFI:ITEMS.concat(OFFI);return L};const sh=document.createElement('div');sh.className='done gsr';
  const chips=(id,arr,label)=>`<div class=gcl>${label}</div><div class=gch2 id=${id}><button data-v="">All</button>${arr.map(x=>`<button data-v="${esc(x[0])}">${esc(x[0])}</button>`).join('')}</div>`;
  sh.innerHTML=`<div class=gsrh><b>🔍 Search items</b><button id=gsx>✕</button></div><input id=gsq placeholder="Name / alias / code – e.g. 103, EMC000021" autocomplete=off>
+  <div class=gcl>Show</div><div class=gch2 id=gsv><button data-w=on class=on>Active</button><button data-w=off>Deactivated <small>${OFFI.length}</small></button><button data-w=all>All</button></div>
   ${chips('gsf',GFIN.map(f=>[f,null]),'Finish')}${chips('gsb',BR,'Brand')}${chips('gss',SZ,'Size')}
   <div class=gsbar><label><input type=checkbox id=gsa> All</label><span id=gsn></span></div><div id=gsl2 class=gsl2></div>
-  <div class=gsft><button class="btn" id=gsk>🧞 Ask Genie</button><button class="btn" id=gse style="background:#334155">⬇ Report</button></div>`;document.body.appendChild(sh);try{history.pushState({ov:1},'')}catch(_){}
+  <div class=gsft><button class="btn" id=gsk>🧞 Ask Genie</button><button class="btn" id=gse style="background:#334155">⬇ Report</button>${F.count?'<button class="btn" id=gso style="background:#c0392b">⏻ De-active</button>':''}</div>`;document.body.appendChild(sh);try{history.pushState({ov:1},'')}catch(_){}
  const ok=(i,skip)=>{const ws=U(st.q).split(/\s+/).filter(Boolean),h=U(i.n+' '+(i.a||'')+' '+(i.x||[]).join(' '));return ws.every(w=>h.includes(w))&&(skip=='f'||!st.fin.size||[...st.fin].some(f=>i._fin.has(f)))&&(skip=='s'||!st.sz.size||st.sz.has(i._sz))&&(skip=='b'||!st.br.size||st.br.has(i._br))};
- const res=()=>L.filter(i=>ok(i));
- const recount=()=>{[['#gsf','f',i=>[...i._fin]],['#gsb','b',i=>[i._br]],['#gss','s',i=>[i._sz]]].forEach(([id,k,val])=>{const m={};L.forEach(i=>{if(ok(i,k))val(i).forEach(v=>{if(v)m[v]=(m[v]||0)+1})});sh.querySelectorAll(id+' button[data-v]').forEach(b=>{const v=b.dataset.v;if(!v)return;const n=m[v]||0;let sm=b.querySelector('small');if(!sm){sm=document.createElement('small');b.appendChild(sm)}sm.textContent=' '+n;b.classList.toggle('zero',!n)})})};
- const draw=()=>{const R=res();recount();sh.querySelector('#gsn').textContent=R.length+' item(s)'+(st.sel.size?' · '+st.sel.size+' ticked':'');
+ const res=()=>base().filter(i=>ok(i));
+ const recount=()=>{base();[['#gsf','f',i=>[...i._fin]],['#gsb','b',i=>[i._br]],['#gss','s',i=>[i._sz]]].forEach(([id,k,val])=>{const m={};L.forEach(i=>{if(ok(i,k))val(i).forEach(v=>{if(v)m[v]=(m[v]||0)+1})});sh.querySelectorAll(id+' button[data-v]').forEach(b=>{const v=b.dataset.v;if(!v)return;const n=m[v]||0;let sm=b.querySelector('small');if(!sm){sm=document.createElement('small');b.appendChild(sm)}sm.textContent=' '+n;b.classList.toggle('zero',!n)})})};
+ const draw=()=>{const R=res();recount();try{obtn()}catch(_){};sh.querySelector('#gsn').textContent=R.length+' item(s)'+(st.sel.size?' · '+st.sel.size+' ticked':'');
   [['#gsf',st.fin],['#gsb',st.br],['#gss',st.sz]].forEach(([id,set])=>sh.querySelectorAll(id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v?set.has(b.dataset.v):!set.size)));
-  sh.querySelector('#gsl2').innerHTML=R.slice(0,300).map(i=>`<label class=gsi><input type=checkbox data-i="${esc(String(i.id))}" ${st.sel.has(String(i.id))?'checked':''}><span><b>${esc(i.n)}</b><small>${esc([i.a,i.g].filter(Boolean).join(' · '))}</small></span><em>${F.stock&&i.s!=null?f2(i.s)+' '+esc(i.u||''):''}</em></label>`).join('')+(R.length>300?`<p class=note>Showing 300 of ${R.length} – "All" still takes all ${R.length}.</p>`:'')||'<p class=note>No item – change the words or filters.</p>'};
+  sh.querySelector('#gsl2').innerHTML=R.slice(0,300).map(i=>`<label class=gsi><input type=checkbox data-i="${esc(String(i.id))}" ${st.sel.has(String(i.id))?'checked':''}><span><b>${esc(i.n)}</b>${i.o?' <small style="color:#c0392b">⏻ deactivated</small>':''}<small>${esc([i.a,i.g].filter(Boolean).join(' · '))}</small></span><em>${F.stock&&i.s!=null?f2(i.s)+' '+esc(i.u||''):''}</em></label>`).join('')+(R.length>300?`<p class=note>Showing 300 of ${R.length} – "All" still takes all ${R.length}.</p>`:'')||'<p class=note>No item – change the words or filters.</p>'};
  const pick=()=>{const R=res();return st.sel.size?L.filter(i=>st.sel.has(String(i.id))):R};
+ const obtn=()=>{const b=sh.querySelector('#gso');if(!b)return;const n=st.sel.size||res().length,on=st.show=='off';b.textContent=(on?'✔ Re-active':'⏻ De-active')+' ('+n+')';b.style.background=on?'#1e8449':'#c0392b';b.style.display=st.show=='all'?'none':''};
+ sh.querySelector('#gsv').onclick=e=>{const b=e.target.closest('[data-w]');if(!b)return;st.show=b.dataset.w;st.sel.clear();sh.querySelector('#gsa').checked=false;sh.querySelectorAll('#gsv button').forEach(x=>x.classList.toggle('on',x==b));draw()};
+ const so=sh.querySelector('#gso');if(so)so.onclick=async()=>{const off=st.show!='off',T=pick().filter(i=>off?!i.o:i.o);if(!T.length)return toast('No item');
+  if(T.length>1&&!(await askBox((off?'⏻ De-active ':'✔ Re-active ')+T.length+' item(s)?',off?'Hidden from item lists here and in WONDER. Scan still finds them. Re-active any time from Show › Deactivated.':'They will show in lists again (here and in WONDER).',off?'De-active':'Re-active',off)))return;
+  so.disabled=true;try{await call('mUpList',{id:'P'+Date.now().toString(36),name:off?'⏻OFF':'⏻ON',lines:T.map(i=>({c:String(i.a||i.n||i.id).slice(0,60),id:i.id,q:1}))});
+   T.forEach(i=>{if(off){i.o=1;const k=ITEMS.indexOf(i);if(k>=0)ITEMS.splice(k,1);if(!OFFI.includes(i))OFFI.push(i)}else{delete i.o;const k=OFFI.indexOf(i);if(k>=0)OFFI.splice(k,1);if(!ITEMS.includes(i))ITEMS.push(i)}});itCache();
+   st.sel.clear();sh.querySelector('#gsa').checked=false;const sm=sh.querySelector('#gsv [data-w=off] small');if(sm)sm.textContent=OFFI.length;draw();toast('✔ '+T.length+' item(s) '+(off?'deactivated':'active again')+' – WONDER updates in 2 min',3000)}catch(e){if(e.message!='stop')toast(e.message,3000)}so.disabled=false};
  const tog=(id,set)=>{sh.querySelector(id).onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;if(!v)set.clear();else set.has(v)?set.delete(v):set.add(v);st.sel.clear();sh.querySelector('#gsa').checked=false;draw()}};
  tog('#gsf',st.fin);tog('#gsb',st.br);tog('#gss',st.sz);
  sh.querySelector('#gsq').oninput=e=>{st.q=e.target.value;draw()};
