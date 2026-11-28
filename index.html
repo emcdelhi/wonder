@@ -376,7 +376,7 @@ const canNew=()=>{const F=(ME&&ME.flags)||{};return !!(F.newitem||F.gteach)};
 function newItem(i){const l=LST.lines[i];if(!l)return;const g=lGuess(l);const sh=document.createElement('div');sh.className='sheet';
  sh.innerHTML=`<div class=in><b style="font-size:16px">✔ Add new item to WONDER</b><div class=note style="margin:2px 0 8px">Check and correct, then Approve. WONDER makes the item in about 2 minutes.</div>
   <label class=l>Item name (No. FINISH BRAND SIZE)</label><input id=nwn value="${esc(g.n||l.nm||'')}" autocomplete=off>
-  <label class=l>Code / barcode</label><input id=nwa value="${esc(g.a!=null?g.a:(l.nc?'':U(l.c)))}" autocomplete=off placeholder="Leave empty if no barcode">
+  <div class=note style="margin:6px 0 0;color:#0f766e"><b>Barcode: automatic</b> – WONDER gives the next EMCAT code (EMCAT0001, 0002 …). Print the label from WONDER.</div><label class=l>Scanned code (kept as 2nd code)</label><input id=nwa value="${esc(g.a!=null?g.a:(l.nc?'':U(l.c)))}" autocomplete=off placeholder="Leave empty if no barcode">
   <label class=l>Group</label><input id=nwg value="${esc(g.g||'')}" autocomplete=off placeholder="e.g. SHG 22*0.8 or General">
   <label class=l>Unit</label><select id=nwu>${['Metre','Roll','Pcs','Box','Kg','Nos'].map(u=>`<option ${u==(g.u||'Metre')?'selected':''}>${u}</option>`).join('')}</select>
   ${l.img?`<img src="${l.img}" style="width:100%;max-height:160px;object-fit:contain;border-radius:10px;margin-top:8px">`:''}
@@ -402,7 +402,7 @@ function scanSettings(){hb(1);$('#ttl').textContent='⚙ Scanner settings';
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{SET[b.dataset.c]=b.dataset.v;setSave();if(b.dataset.c=='vol'||b.dataset.c=='voice')beep('ok');scanSettings()});$('#sup').onclick=()=>upCheck(true)}
 async function askQ(name){if(!SET.askQty)return 1;const a=await inBox('Quantity',esc(name),'1',1);if(a==null)return null;const n=+String(a).replace(',','.');return isFinite(n)&&n>0?n:null}
 /* ---------- auto update: version.json on the app site; checked at start, when the app comes back, and every 10 min ---------- */
-const APP_V='28-Nov-2026 15:40';
+const APP_V='28-Nov-2026 16:15';
 async function upCheck(manual){try{const j=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
  if(j&&j.v&&j.v!==APP_V){const k='wm_upd_'+j.v,t=+(sessionStorage.getItem(k)||0);if(!manual&&Date.now()-t<120000)return;sessionStorage.setItem(k,Date.now());
   try{await leaving()}catch(_){}const b=document.createElement('div');b.className='upd';b.textContent='⟳ Updating WONDER Mobile to '+j.v+'…';document.body.appendChild(b);
